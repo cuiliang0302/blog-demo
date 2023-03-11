@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vue-dev
+data:
+  default.conf: |-
+    server {
+      listen       80;
+      server_name  vue-dev.test.com;
+      location /img {
+          return 301 https://www.baidu.com;
+      }
+      location / {
+          root  /opt/vue/dist;
+          index  index.html index.htm;
+          try_files $uri $uri/ /index.html;
+          add_header Access-Control-Allow-Origin *;
+      }
+    } 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vue
+data:
+  default.conf: |-
+    server {
+      listen       80;
+      server_name   vue.test.com;
+      location /img {
+          alias /media/;
+      }
+      location / {
+          root  /opt/vue/dist;
+          index  index.html index.htm;
+          try_files $uri $uri/ /index.html;
+          add_header Access-Control-Allow-Origin *;
+      }
+    } 

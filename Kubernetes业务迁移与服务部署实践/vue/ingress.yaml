@@ -1,0 +1,27 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vue-dev
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`vue-dev.test.com`) # 域名
+    kind: Rule
+    services:
+      - name: vue-dev
+        port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vue
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`vue.test.com`) # 域名
+    kind: Rule
+    services:
+      - name: vue
+        port: 80

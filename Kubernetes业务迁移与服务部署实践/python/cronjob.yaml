@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: python
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    metadata:
+      name: python
+    spec:
+      template:
+        spec:
+          containers:
+          - name: python
+            image: 192.168.10.100/demo/python:v1
+            volumeMounts:
+            - name: python-data
+              mountPath: "/project/data"
+            - name: python-log
+              mountPath: "/project/log"
+            env:
+            - name: TZ
+              value: Asia/Shanghai
+          restartPolicy: Never
+          volumes:
+          - name: python-data
+            persistentVolumeClaim:
+              claimName: python-pvc
+          - name: python-log
+            hostPath:
+              path: /data/python-log
+              type: DirectoryOrCreate

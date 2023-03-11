@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  labels:
+    app: filebeat
+spec:
+  selector:
+    matchLabels:
+      app: filebeat
+  template:
+    metadata:
+      labels:
+        app: filebeat
+    spec:
+      containers:
+      - name: filebeat
+        image: elastic/filebeat:8.6.2
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m" 
+          requests:
+            memory: "10Mi"
+            cpu: "10m" 
+        args: ["-c","/etc/filebeat/filebeat.yml","-e"]
+        volumeMounts:
+        - name: filebeat-config
+          mountPath: /etc/filebeat/filebeat.yml
+          subPath: filebeat.yml
+        - name: python-log
+          mountPath: /project/log
+        - name: es-cert
+          mountPath: /secret
+          readOnly: true
+      volumes:
+      - name: python-log
+        hostPath:
+          path: /data/python-log
+          type: DirectoryOrCreate
+      - name: filebeat-config
+        configMap:
+          name: filebeat-config
+      - name: es-cert
+        secret:
+          secretName: es

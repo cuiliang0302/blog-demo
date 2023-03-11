@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springboot
+  template:
+    metadata:
+      labels:
+        app: springboot
+    spec:
+      containers:
+      - name: springboot
+        image: 192.168.8.100/demo/springboot:v1
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+          requests:
+            memory: "128Mi"
+            cpu: "100m" 
+        ports:
+          - containerPort: 8888
+            name: web
+        livenessProbe:
+          httpGet:
+            port: web
+            path: /healthy
+          timeoutSeconds: 2       # 表示容器必须在2s内做出相应反馈给probe，否则视为探测失败
+          periodSeconds: 30       # 探测周期，每30s探测一次
+        readinessProbe:
+          tcpSocket:
+            port: web
+          initialDelaySeconds: 10 # 容器启动后10s开始探测

@@ -1,0 +1,13 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: springboot
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`springboot.test.com`) # 域名
+    kind: Rule
+    services:
+      - name: springboot  # 与svc的name一致
+        port: 8888     # 与svc的port一致

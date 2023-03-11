@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: log
+      enabled: true
+      paths:
+      - /project/log/*.log
+    setup.ilm.enabled:  false #新版本的Filebeat则默认的配置开启了ILM 导致索引的命名规则被ILM策略控制
+    setup.template.name:  "python"
+    setup.template.pattern:  "python-*"
+    setup.template.overwrite:  false
+    setup.template.settings:
+      index.number_of_shards: 1 #索引分片数
+      index.number_of_replicas: 0 #索引副本数
+    output.elasticsearch:  #指定ES的配置
+      hosts:  ["https://192.168.10.100:9200"]
+      username: "elastic"
+      password: "HufU-ybqd5aeEvh8xf6y"
+      index: "python-%{+yyyy.MM.dd}"
+      ssl.certificate_authorities: ["/secret/http_ca.crt"]

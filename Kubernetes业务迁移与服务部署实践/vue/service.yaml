@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vue-dev
+spec:
+  type: ClusterIP 
+  selector:
+    app: vue-dev 
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP 
+    targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vue
+spec:
+  type: ClusterIP 
+  selector:
+    app: vue
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP 
+    targetPort: 80

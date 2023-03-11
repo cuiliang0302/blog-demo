@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: springboot
+  labels:
+    name: springboot
+spec:
+  containers:
+  - name: springboot
+    image: 192.168.8.100/demo/springboot:v1
+    resources:
+      limits:
+        memory: "1Gi"
+        cpu: "1"
+      requests:
+        memory: "128Mi"
+        cpu: "100m" 
+    ports:
+      - containerPort: 8888
+        name: web
+    livenessProbe:
+      httpGet:
+        port: web
+        path: /healthy
+      initialDelaySeconds: 20
+    readinessProbe:
+      tcpSocket:
+        port: web

@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vue-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vue-dev
+  template:
+    metadata:
+      labels:
+        app: vue-dev
+    spec:
+      containers:
+      - name: vue
+        image: 192.168.10.100/demo/vue:v1
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+          requests:
+            memory: "128Mi"
+            cpu: "100m" 
+        ports:
+          - containerPort: 80
+            name: web
+        livenessProbe:
+          httpGet:
+            port: web
+            path: /
+        readinessProbe:
+          tcpSocket:
+            port: web
+        volumeMounts:
+          - mountPath: /etc/nginx/conf.d/default.conf
+            subPath: default.conf
+            name: nginx-config
+      volumes:
+        - name: nginx-config
+          configMap:
+            name:  vue-dev
+            
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vue
+  template:
+    metadata:
+      labels:
+        app: vue
+    spec:
+      containers:
+      - name: vue
+        image: 192.168.10.100/demo/vue:v1
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+          requests:
+            memory: "128Mi"
+            cpu: "100m" 
+        ports:
+          - containerPort: 80
+            name: web
+        livenessProbe:
+          httpGet:
+            port: web
+            path: /
+        readinessProbe:
+          tcpSocket:
+            port: web
+        volumeMounts:
+          - mountPath: /etc/nginx/conf.d/default.conf
+            subPath: default.conf
+            name: nginx-config
+          - mountPath: /media
+            name: media
+      - name: img
+        image: 192.168.10.100/demo/img:v1
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m" 
+        volumeMounts:
+          - mountPath: /media
+            name: media
+      volumes:
+        - name:  nginx-config
+          configMap:
+            name:  vue
+        - name: media
+          emptyDir: {}
