@@ -1,0 +1,249 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-master-pv1
+  labels:
+    app: es-master-1
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data/es-master-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - work1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-master-pv2
+  labels:
+    app: es-master-2
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data/es-master-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - work2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-master-pv3
+  labels:
+    app: es-master-3
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data/es-master-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - work3
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-hot-pv1
+  labels:
+    app: es-hot-1
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data1/es-hot-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-hot-pv2
+  labels:
+    app: es-hot-2
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data2/es-hot-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-hot-pv3
+  labels:
+    app: es-hot-3
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data1/es-hot-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-hot-pv4
+  labels:
+    app: es-hot-4
+spec:
+  capacity:
+    storage: 100Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data2/es-hot-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-warm-pv1
+  labels:
+    app: es-warm-1
+spec:
+  capacity:
+    storage: 600Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data/es-warm-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master3
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-warm-pv2
+  labels:
+    app: es-warm-2
+spec:
+  capacity:
+    storage: 600Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data/es-warm-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - work1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-cold-pv1
+  labels:
+    app: es-cold-1
+spec:
+  capacity:
+    storage: 800Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /data/es-cold-data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - work2

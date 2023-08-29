@@ -8,3 +8,6 @@
 
   [Kubernetes业务迁移与服务部署实践-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/52)
 
+* 使用ECK部署与维护ELK集群
+
+  [使用ECK部署与维护ELK集群-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/71)

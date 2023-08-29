@@ -1,0 +1,159 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-master-0
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-master-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-master-1
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-master-2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-master-2
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-master-3
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-hot1-0
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-hot-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-hot1-1
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-hot-2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-hot2-0
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-hot-3
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-hot2-1
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-hot-4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-warm-0
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 600Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-warm-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-warm-1
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 600Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-warm-2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-elasticsearch-es-cold-0
+  namespace: elk
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 800Gi
+  storageClassName: local-storage
+  selector:
+    matchLabels:
+      app: es-cold-1

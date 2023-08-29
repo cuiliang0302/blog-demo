@@ -1,0 +1,173 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  namespace: elk
+  name: elasticsearch
+spec:
+  version: 8.9.1
+  image: harbor.local.com/elk/elasticsearch:8.9.1
+  secureSettings:
+  - secretName: snapshot-settings
+  nodeSets:
+  - name: master
+    count: 3
+    config:
+      node.roles: ["master", "ingest", "remote_cluster_client", "transform"]
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+  - name: hot1
+    count: 2
+    config:
+      node.roles: [ "data_content", "data_hot", "remote_cluster_client"]
+      node.attr.rack_id: rack1
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms1536m -Xmx1536m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 3Gi
+            requests:
+              cpu: 500m
+              memory: 1536Mi
+  - name: hot2
+    count: 2
+    config:
+      node.roles: [ "data_content", "data_hot", "remote_cluster_client"]
+      node.attr.rack_id: rack2
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms1536m -Xmx1536m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 3Gi
+            requests:
+              cpu: 500m
+              memory: 1536Mi
+  - name: warm
+    count: 2
+    config:
+      node.roles: [ "data_content", "data_warm", "remote_cluster_client"]
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 600Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms3g -Xmx3g"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 6Gi
+            requests:
+              cpu: 500m
+              memory: 3Gi
+  - name: cold
+    count: 1
+    config:
+      node.roles: [ "data_content", "data_cold", "remote_cluster_client"]
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 800Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
