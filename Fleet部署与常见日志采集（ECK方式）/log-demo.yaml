@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: log-demo
+  template:
+    metadata:
+      labels:
+        app: log-demo
+    spec:
+      containers:
+      - name: log-demo
+        image: harbor.local.com/app/log_demo:1.0
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+          - mountPath: /opt/logDemo/log
+            name: logs
+      volumes:
+        - name: logs
+          hostPath:
+            path: /var/log/logDemo
+            type: DirectoryOrCreate

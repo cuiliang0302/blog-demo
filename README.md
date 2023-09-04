@@ -1,4 +1,4 @@
-# blog_demo
+# blog demo
 
 博客网站文章相关代码与yaml文件
 
@@ -11,3 +11,7 @@
 * 使用ECK部署与维护ELK集群
 
   [使用ECK部署与维护ELK集群-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/71)
+
+* Fleet部署与常见日志采集（ECK方式）
+
+  [Fleet部署与常见日志采集（ECK方式）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/72)

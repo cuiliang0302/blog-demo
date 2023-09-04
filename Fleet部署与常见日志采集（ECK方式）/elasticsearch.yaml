@@ -1,0 +1,191 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+  namespace: elk
+spec:
+  version: 8.9.1
+  image: harbor.local.com/elk/elasticsearch:8.9.1
+  secureSettings:
+  - secretName: snapshot-settings
+  nodeSets:
+  - name: master
+    count: 3
+    config:
+      node.roles: ["master", "ingest", "remote_cluster_client", "transform"]
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+          - name: es-log4j2
+            mountPath: /usr/share/elasticsearch/config/log4j2.properties
+            subPath: log4j2.properties
+        volumes:
+        - name: elasticsearch-logs
+          hostPath:
+            path: /var/log/elasticsearch
+            type: DirectoryOrCreate
+        - name: es-log4j2
+          configMap:
+            name: es-log4j2
+  - name: hot
+    count: 2
+    config:
+      node.roles: [ "data_content", "data_hot", "remote_cluster_client"]
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+          - name: es-log4j2
+            mountPath: /usr/share/elasticsearch/config/log4j2.properties
+            subPath: log4j2.properties
+        volumes:
+        - name: elasticsearch-logs
+          hostPath:
+            path: /var/log/elasticsearch
+            type: DirectoryOrCreate
+        - name: es-log4j2
+          configMap:
+            name: es-log4j2
+  - name: warm
+    count: 2
+    config:
+      node.roles: [ "data_content", "data_warm", "remote_cluster_client"]
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 600Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+          - name: es-log4j2
+            mountPath: /usr/share/elasticsearch/config/log4j2.properties
+            subPath: log4j2.properties
+        volumes:
+        - name: elasticsearch-logs
+          hostPath:
+            path: /var/log/elasticsearch
+            type: DirectoryOrCreate
+        - name: es-log4j2
+          configMap:
+            name: es-log4j2
+  - name: cold
+    count: 1
+    config:
+      node.roles: [ "data_content", "data_cold", "remote_cluster_client"]
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 800Gi
+        storageClassName: local-storage
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: ES_SETTING_REINDEX_REMOTE_WHITELIST
+            value: "192.168.10.100:9200"
+          - name: ES_SETTING_REINDEX_SSL_VERIFICATION__MODE
+            value: "none"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+          - name: es-log4j2
+            mountPath: /usr/share/elasticsearch/config/log4j2.properties
+            subPath: log4j2.properties
+        volumes:
+        - name: elasticsearch-logs
+          hostPath:
+            path: /var/log/elasticsearch
+            type: DirectoryOrCreate
+        - name: es-log4j2
+          configMap:
+            name: es-log4j2

@@ -1,0 +1,75 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana
+  namespace: elk
+spec:
+  version: 8.9.1
+  image: harbor.local.com/elk/kibana:8.9.1
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch
+  config:
+    xpack.fleet.agents.elasticsearch.hosts: ["https://elasticsearch-es-http.elk.svc:9200"]
+    xpack.fleet.agents.fleet_server.hosts: ["https://fleet-server-agent-http.elk.svc:8220"]
+    xpack.fleet.packages:
+      - name: system
+        version: latest
+      - name: elastic_agent
+        version: latest
+      - name: fleet_server
+        version: latest
+      - name: elasticsearch
+        version: latest
+      - name: kubernetes
+        version: latest
+    xpack.fleet.agentPolicies:
+      - name: Fleet Server on ECK policy
+        id: eck-fleet-server
+        namespace: elk
+        monitoring_enabled:
+          - logs
+          - metrics
+        unenroll_timeout: 900
+        package_policies:
+        - package:
+            name: fleet_server
+          name: fleet_server
+      - name: Elastic Agent on ECK policy
+        id: eck-agent
+        namespace: elk
+        monitoring_enabled:
+          - logs
+          - metrics
+        unenroll_timeout: 900
+        package_policies:
+        - package:
+            name: system
+          name: system
+        - package:
+            name: elastic_agent
+          name: elastic_agent
+        - package:
+            name: elasticsearch
+          name: elasticsearch
+        - package:
+            name: kubernetes
+          name: kubernetes
+  podTemplate:
+    spec:
+      containers:
+      - name: kibana
+        env:
+          - name: NODE_OPTIONS
+            value: "--max-old-space-size=2048"
+          - name: SERVER_PUBLICBASEURL
+            value: "https://kibana.local.com"
+          - name: I18N_LOCALE
+            value: "zh-CN"
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 0.5
+          limits:
+            memory: 2Gi
+            cpu: 2

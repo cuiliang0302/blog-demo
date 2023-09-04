@@ -1,0 +1,53 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
+metadata:
+  name: elasticsearch-transport
+  namespace: elk
+spec:
+  serverName: "elasticsearch.local.com"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: elasticsearch
+  namespace: elk
+spec:
+  entryPoints:
+    - websecure                  
+  routes:
+  - match: Host(`elasticsearch.local.com`)
+    kind: Rule
+    services:
+    - name: elasticsearch-es-http
+      port: 9200
+      serversTransport: elasticsearch-transport
+  tls:
+    secretName: elk-tls
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
+metadata:
+  name: kibana-transport
+  namespace: elk
+spec:
+  serverName: "kibana.local.com"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kibana
+  namespace: elk
+spec:
+  entryPoints:
+    - websecure             
+  routes:
+  - match: Host(`kibana.local.com`)
+    kind: Rule
+    services:
+    - name: kibana-kb-http
+      port: 5601
+      serversTransport: kibana-transport
+  tls:
+    secretName: elk-tls

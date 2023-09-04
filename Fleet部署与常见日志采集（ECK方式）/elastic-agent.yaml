@@ -1,0 +1,37 @@
+apiVersion: agent.k8s.elastic.co/v1alpha1
+kind: Agent
+metadata:
+  name: elastic-agent
+  namespace: elk
+spec:
+  version: 8.9.1
+  image: harbor.local.com/elk/elastic-agent:8.9.1
+  kibanaRef:
+    name: kibana
+  fleetServerRef:
+    name: fleet-server
+  mode: fleet
+  policyID: eck-agent
+  daemonSet:
+    podTemplate:
+      spec:
+        serviceAccountName: elastic-agent
+        automountServiceAccountToken: true
+        securityContext:
+          runAsUser: 0
+        containers:
+        - name: agent
+          volumeMounts:
+          - mountPath: /var/log
+            name: log-dir
+          - mountPath: /etc/es-http-certs
+            name: es-http-certs
+        hostNetwork: true
+        dnsPolicy: ClusterFirstWithHostNet
+        volumes:
+        - name: log-dir
+          hostPath:
+            path: /var/log
+        - name: es-http-certs
+          secret:
+            secretName: elasticsearch-es-http-certs-public

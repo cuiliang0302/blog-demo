@@ -1,0 +1,32 @@
+# 可选，如果没有ingress资源想暴露es和kibana服务使用nodePort方式
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-nodeport
+  namespace: elk
+spec:
+  type: NodePort 
+  selector:     
+    common.k8s.elastic.co/type: elasticsearch
+  ports:
+  - name: https
+    port: 9200
+    protocol: TCP
+    targetPort: 9200
+    nodePort: 30300   
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-nodeport
+  namespace: elk
+spec:
+  type: NodePort 
+  selector:     
+    common.k8s.elastic.co/type: kibana
+  ports:
+  - name: kibana-kb-http
+    port: 5601
+    protocol: TCP
+    targetPort: 5601
+    nodePort: 30200   
