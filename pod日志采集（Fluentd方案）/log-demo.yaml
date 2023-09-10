@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: log-demo
+  template:
+    metadata:
+      labels:
+        app: log-demo
+    spec:
+      containers:
+      - name: log-demo
+        image: harbor.local.com/app/log_demo:1.0
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        volumeMounts:
+          - mountPath: /opt/logDemo/log
+            name: logs
+      - name: fluentd
+        image: harbor.local.com/elk/fluentd:v1.16
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        volumeMounts:
+          - mountPath: /var/log/logDemo/log
+            name: logs
+          - name: fluentd-conf
+            mountPath: /fluentd/etc/fluent.conf
+            subPath: fluent.conf
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: fluentd-conf
+          configMap:
+            name: fluentd-conf

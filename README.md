@@ -15,3 +15,7 @@
 * Fleet部署与常见日志采集（ECK方式）
 
   [Fleet部署与常见日志采集（ECK方式）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/72)
+  
+* pod日志采集（Fluentd方案）
+
+  [pod日志采集（Fluentd方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/74)
