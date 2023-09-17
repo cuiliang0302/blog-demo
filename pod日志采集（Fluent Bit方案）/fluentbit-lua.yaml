@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentbit-lua
+data:
+  fluentbit.lua : |-
+    function replace_content(tag, timestamp, record)
+        if record["content"] ~= nil then
+            local replaced_value = string.gsub(record["content"], "'", "\"")
+            record["content"] = replaced_value
+        end
+        return 1, timestamp, record
+    end

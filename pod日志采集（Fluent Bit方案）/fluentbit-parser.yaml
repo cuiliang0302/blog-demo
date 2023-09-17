@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentbit-parser
+data:
+  fluentbit-parser.conf : |-
+    [PARSER]
+        Name        regex_parser
+        Format      regex
+        Regex       /^(?<logtime>[^|]+) \| (?<level>[A-Z]*) *\| __main__:(?<class>\D*:\d*) - (?<content>.*)$/
+        Time_Key    logtime
+        Time_Format %Y-%m-%d %H:%M:%S.%L
+        Time_Offset +0800
+
+    [PARSER]
+        Name        json_parser
+        Format      json

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentbit-conf
+data:
+  fluentbit.conf : |-
+    [SERVICE]
+        Parsers_File                /etc/fluent-bit/fluentbit-parser.conf
+        storage.path                /var/log/flb-storage/ 
+        storage.sync                normal               
+        storage.checksum            off	                  
+        storage.backlog.mem_limit   5M	                
+
+    [INPUT]
+        name            tail
+        path            /var/log/logDemo/log/info.log
+        parser          regex_parser
+        storage.type    filesystem
+
+    [FILTER]
+        name    lua
+        match   *
+        script  /etc/fluent-bit/fluentbit.lua
+        call    replace_content
+
+    [FILTER]
+        name        parser
+        match       *
+        key_Name    content
+        parser      json_parser
+
+    [FILTER]
+        name        geoip2
+        match       *
+        database    /etc/fluent-bit/GeoLite2-City.mmdb
+        lookup_key  remote_addr
+        record      geoip.country   remote_addr %{country.names.en}
+        record      geoip.isocode   remote_addr %{country.iso_code}
+        Record      geoip.latitude  remote_addr %{location.latitude}
+        Record      geoip.longitude remote_addr %{location.longitude}
+
+    # [OUTPUT]
+    #     name        stdout
+    #     match       *
+
+    [OUTPUT]
+        name                        es
+        match                       *
+        host                        elasticsearch-es-http.elk.svc
+        port                        9200
+        HTTP_User                   elastic
+        HTTP_Passwd                 N6TxB70x2A6S1Np1G87iH3vE
+        tls                         On
+        tls.verify                  Off
+        index                       fluent-bit.log
+        Suppress_Type_Name          On
+        storage.total_limit_size    5M

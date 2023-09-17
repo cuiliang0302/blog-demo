@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: log-demo
+  template:
+    metadata:
+      labels:
+        app: log-demo
+    spec:
+      containers:
+      - name: log-demo
+        image: harbor.local.com/app/log_demo:1.0
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        volumeMounts:
+          - mountPath: /opt/logDemo/log
+            name: logs
+      - name: fluentbit
+        image: harbor.local.com/elk/fluentbit:v2.1.9
+        args:
+          - -c
+          - /etc/fluent-bit/fluentbit.conf
+        resources:
+          limits:
+            memory: "32Mi"
+            cpu: "10m"
+        volumeMounts:
+          - mountPath: /var/log/logDemo/log
+            name: logs
+          - name: fluentbit-conf
+            mountPath: /etc/fluent-bit/fluentbit.conf
+            subPath: fluentbit.conf
+          - name: fluentbit-parser
+            mountPath: /etc/fluent-bit/fluentbit-parser.conf
+            subPath: fluentbit-parser.conf
+          - name: fluentbit-lua
+            mountPath: /etc/fluent-bit/fluentbit.lua
+            subPath: fluentbit.lua
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: fluentbit-conf
+          configMap:
+            name: fluentbit-conf
+        - name: fluentbit-parser
+          configMap:
+            name: fluentbit-parser
+        - name: fluentbit-lua
+          configMap:
+            name: fluentbit-lua
