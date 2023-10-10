@@ -23,3 +23,7 @@
 * pod日志采集（Fluent Bit方案）
 
   [pod日志采集（Fluent Bit方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/75)
+  
+* pod日志采集（EFK方案）
+  
+  [pod日志采集（EFK方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/76)

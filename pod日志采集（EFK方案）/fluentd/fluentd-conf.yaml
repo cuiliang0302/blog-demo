@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-conf
+  namespace: logging
+data:
+  fluent.conf : |
+    <system>
+      log_level info
+    </system>
+
+    <source>
+      @type forward
+      port 8888
+      bind 0.0.0.0
+    </source>
+    @include /fluentd/etc/conf/*.conf

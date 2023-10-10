@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluentd
+  namespace: logging
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      containers:
+      - name: fluentd
+        image: harbor.local.com/elk/fluentd:v1.16.2
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8888
+        volumeMounts:
+          - name: fluentd-conf
+            mountPath: /fluentd/etc/fluent.conf
+            subPath: fluent.conf
+          - name: service-conf
+            mountPath: /fluentd/etc/conf/service.conf
+            subPath: service.conf
+          - name: pod-conf
+            mountPath: /fluentd/etc/conf/pod.conf
+            subPath: pod.conf
+          - name: myapp-conf
+            mountPath: /fluentd/etc/conf/myapp.conf
+            subPath: myapp.conf
+      volumes:
+        - name: fluentd-conf
+          configMap:
+            name: fluentd-conf
+        - name: service-conf
+          configMap:
+            name: service-conf
+        - name: pod-conf
+          configMap:
+            name: pod-conf
+        - name: myapp-conf
+          configMap:
+            name: myapp-conf

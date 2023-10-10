@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-demo
+  template:
+    metadata:
+      labels:
+        app: log-demo
+    spec:
+      containers:
+      - name: log-demo
+        image: harbor.local.com/app/log_demo:1.0
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-conf
+  namespace: logging
+data:
+  myapp.conf : |
+    <match kube.**>
+      @type rewrite_tag_filter
+      <rule>
+        key $.kubernetes.container_name
+        pattern log-demo
+        tag myapp.log
+      </rule>
+    </match>
+
+    <filter myapp.log>
+      @type parser
+      key_name log
+      <parse>
+        @type regexp
+        expression /^(?<logtime>[^|]+) \| (?<level>[A-Z]*) *\| __main__:(?<class>\D*:\d*) - (?<content>.*)$/
+        time_key logtime
+        time_format %Y-%m-%d %H:%M:%S.%L
+      </parse>
+    </filter>
+
+    <filter myapp.log>
+      @type record_transformer
+      enable_ruby
+      <record>
+        content ${record["content"].gsub("'", '"')}
+      </record>
+    </filter>
+
+    <filter myapp.log>
+      @type parser
+      key_name content
+      <parse>
+        @type json
+      </parse>
+    </filter>
+
+    <filter myapp.log>
+      @type geoip
+      geoip_lookup_keys remote_address
+      geoip2_database /fluentd/GeoLite2-City.mmdb
+      backend_library geoip2_c
+      <record>
+        geoip_city            ${city.names.en["remote_address"]}
+        geoip_latitude        ${location.latitude["remote_address"]}
+        geoip_longitude       ${location.longitude["remote_address"]}
+        geoip_country         ${country.iso_code["remote_address"]}
+        geoip_country_name    ${country.names.en["remote_address"]}
+        geoip_postal_code     ${postal.code["remote_address"]}
+        geoip_region_name     ${subdivisions.0.names.en["remote_address"]}
+      </record>
+    </filter>
+
+    <match myapp.log>
+      @type elasticsearch_data_stream
+      host elasticsearch-es-http.elk.svc
+      port 9200
+      default_elasticsearch_version 8
+      user elastic
+      scheme https
+      password 78HOWor95Iiot076O59xq2Am
+      ssl_verify false
+      data_stream_name logs-myapp-default
+      include_timestamp true
+      <buffer>
+        @type file
+        flush_interval 5s
+        path /fluentd/buf/myapp-logs.*
+      </buffer>
+    </match> 

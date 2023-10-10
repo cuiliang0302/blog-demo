@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-conf
+  namespace: logging
+data:
+  pod.conf : |
+    <filter kube.**>
+      @type record_transformer
+      enable_ruby
+      <record>
+        log ${record["log"].to_s}
+      </record>
+      remove_keys $.kubernetes.labels.app
+    </filter>
+
+    <match kube.**>
+      @type elasticsearch_data_stream
+      host elasticsearch-es-http.elk.svc
+      port 9200
+      default_elasticsearch_version 8
+      user elastic
+      scheme https
+      password 78HOWor95Iiot076O59xq2Am
+      ssl_verify false
+      data_stream_name logs-pod-fluentd
+      include_timestamp true
+      <buffer>
+        @type file
+        flush_interval 5s
+        path /fluentd/buf/pod-logs.*
+      </buffer>
+    </match>  

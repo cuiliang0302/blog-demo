@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: service-conf
+  namespace: logging
+data:
+  service.conf : |
+    <filter containerd.service>
+      @type parser
+      key_name MESSAGE
+      reserve_data true
+      <parse>
+        @type regexp
+        expression /time="(?<time>[^"]+)" level=(?<level>[^ ]+) msg="(?<msg>[^"]+)"/
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%S.%N%z
+      </parse>
+    </filter>
+
+    <filter kubelet.service>
+      @type parser
+      key_name MESSAGE
+      reserve_data true
+      <parse>
+        @type regexp
+        expression /[EI](?<time>\d{4} \d{2}:\d{2}:\d{2}.\d{6}) +\d* (?<class>\w*).go:\d*] (?<message>.*)/
+        time_key time
+        time_format %m%d %H:%M:%S.%N
+        timezone +08:00
+      </parse>
+    </filter>
+
+    <match *.service>
+      @type elasticsearch_data_stream
+      host elasticsearch-es-http.elk.svc
+      port 9200
+      default_elasticsearch_version 8
+      user elastic
+      scheme https
+      password 78HOWor95Iiot076O59xq2Am
+      ssl_verify false
+      data_stream_name logs-${tag}-fluentd
+      include_timestamp true
+      <buffer>
+        @type file
+        path /fluentd/buf/service-logs.*
+      </buffer>
+    </match>
