@@ -27,3 +27,7 @@
 * pod日志采集（EFK方案）
   
   [pod日志采集（EFK方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/76)
+  
+  pod日志采集（ELK方案）
+  
+  [pod日志采集（ELK方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/77)

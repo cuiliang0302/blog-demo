@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-myapp-pipeline
+  namespace: elk
+data:
+  pipeline.conf: |
+    input {
+        kafka {
+            bootstrap_servers=>"my-cluster-kafka-brokers.kafka.svc:9092"
+            auto_offset_reset => "latest"
+            topics=>["pod_logs"]
+            codec => "json"
+            group_id => "myapp"
+        }
+    }
+    filter {
+      if [kubernetes][deployment][name] == "log-demo" {
+        grok{
+          match => {"message" => "%{TIMESTAMP_ISO8601:log_timestamp} \| %{LOGLEVEL:level} %{SPACE}* \| (?<class>[__main__:[\w]*:\d*]+) \- %{GREEDYDATA:content}"}
+        }
+        mutate {
+          gsub =>[
+              "content", "'", '"'
+          ]
+          lowercase => [ "level" ]
+        }
+        json {
+          source => "content"
+        }
+        geoip {
+          source => "remote_address"
+          database => "/etc/logstash/GeoLite2-City.mmdb"
+          ecs_compatibility => disabled
+        }
+        mutate {
+          remove_field => ["agent","event","ecs","host","[kubernetes][labels]","input","log","orchestrator","stream","content"]
+        }
+      }
+      else {
+        drop{}
+      }
+    }
+    output{
+      elasticsearch{
+        hosts => ["https://elasticsearch-es-http.elk.svc:9200"]
+        data_stream => "true"
+        data_stream_type => "logs"
+        data_stream_dataset => "myapp"
+        data_stream_namespace => "elk"
+        user => "elastic"
+        password => "2zg5q6AU7xW5jY649yuEpZ47"
+        ssl_enabled => "true"
+        ssl_verification_mode => "none"
+      }
+    }

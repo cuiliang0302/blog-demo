@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: elk
+data:
+  filebeat.yml: |-
+    filebeat.autodiscover:
+      providers:  # 启用自动发现采集pod日志
+      - type: kubernetes
+        node: ${NODE_NAME}
+        hints.enabled: true
+        hints.default_config:
+          type: container
+          paths:
+          - /var/log/containers/*${data.kubernetes.container.id}.log
+          exclude_files: ['.*filebeat-.*'] # 排除filebeat自身日志采集
+      multiline: # 避免日志换行
+        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
+        negate: true 
+        match: after
+    
+    processors:
+    - add_kubernetes_metadata: # 增加kubernetes的属性
+        in_cluster: true
+        host: ${NODE_NAME}
+        matchers:
+        - logs_path:
+            logs_path: "/var/log/containers/"
+    - drop_event: # 不收集debug日志
+        when: 
+          contains:
+            message: "DEBUG"
+  
+    output.kafka:
+      hosts: ["my-cluster-kafka-brokers.kafka.svc:9092"]
+      topic: "pod_logs"
+      partition.round_robin:
+        reachable_only: false
+      required_acks: -1
+      compression: gzip
+    
+    monitoring: # monitoring相关配置
+      enabled: true
+      cluster_uuid: "ZUnqLCRqQL2jeo5FNvMI9g"
+      elasticsearch:
+        hosts:  ["https://elasticsearch-es-http.elk.svc:9200"]
+        username: "elastic" 
+        password: "2zg5q6AU7xW5jY649yuEpZ47"
+        ssl.verification_mode: "none"

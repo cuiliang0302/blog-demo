@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash-myapp
+  namespace: elk
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logstash-myapp
+  template:
+    metadata:
+      labels:
+        app: logstash-myapp
+        monitor: enable
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:
+      - image: harbor.local.com/elk/logstash:v8.9.1
+        name: logstash-myapp
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+        args:
+        - -f
+        - /usr/share/logstash/pipeline/pipeline.conf
+        env:
+        - name: XPACK_MONITORING_ENABLED
+          value: "false"
+        ports:
+          - containerPort: 9600
+        volumeMounts:
+        - name: timezone
+          mountPath: /etc/localtime
+        - name: config
+          mountPath: /usr/share/logstash/config/logstash.conf
+          subPath: logstash.conf
+        - name: log4j2
+          mountPath: /usr/share/logstash/config/log4j2.properties
+          subPath: log4j2.properties
+        - name: pipeline
+          mountPath: /usr/share/logstash/pipeline/pipeline.conf
+          subPath: pipeline.conf
+        - name: log
+          mountPath: /usr/share/logstash/logs
+      volumes:
+      - name: timezone
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
+      - name: config
+        configMap:
+          name: logstash-config
+      - name: log4j2
+        configMap:
+          name: logstash-log4j2
+      - name: pipeline
+        configMap:
+          name: logstash-myapp-pipeline
+      - name: log
+        hostPath:
+          path: /var/log/logstash
+          type: DirectoryOrCreate

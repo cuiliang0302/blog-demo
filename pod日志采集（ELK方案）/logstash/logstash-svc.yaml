@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash-monitor
+  namespace: elk
+spec:
+  selector:
+    monitor: enable
+  ports:
+  - port: 9600
+    targetPort: 9600

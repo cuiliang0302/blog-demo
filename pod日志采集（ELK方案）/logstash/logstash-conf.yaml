@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: elk
+data:
+  logstash.conf: |
+    api.enabled: true
+    api.http.port: 9600
+    xpack.monitoring.enabled: false
+    monitoring.cluster_uuid: "ZUnqLCRqQL2jeo5FNvMI9g"
