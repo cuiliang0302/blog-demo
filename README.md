@@ -28,6 +28,10 @@
   
   [pod日志采集（EFK方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/76)
   
-  pod日志采集（ELK方案）
+* pod日志采集（ELK方案）
   
   [pod日志采集（ELK方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/77)
+  
+* 日志清洗过滤（vector方案）
+  
+  [pod日志采集（ELK方案）-崔亮的博客 (cuiliangblog.cn)](https://www.cuiliangblog.cn/detail/article/78)
