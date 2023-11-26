@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector
+  namespace: elk
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vector
+  template:
+    metadata:
+      labels:
+        app: vector
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:
+      - image: harbor.local.com/elk/vector:v0.34.1
+        name: vector
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+        args:
+        - -c
+        - /etc/vector/*.yaml
+        ports:
+          - name: exporter
+            containerPort: 9598
+          - name: api
+            containerPort: 8686
+        volumeMounts:
+        - name: timezone
+          mountPath: /etc/localtime
+        - name: data
+          mountPath: /var/lib/vector
+        - name: vector-config
+          mountPath: /etc/vector/vector.yaml
+          subPath: vector.yaml
+        - name: pod-config
+          mountPath: /etc/vector/pod.yaml
+          subPath: pod.yaml
+        - name: myapp-config
+          mountPath: /etc/vector/myapp.yaml
+          subPath: myapp.yaml
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8686
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8686
+      volumes:
+      - name: timezone
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
+      - name: data
+        hostPath:
+          path: /data/vector
+          type: DirectoryOrCreate
+      - name: vector-config
+        configMap:
+          name: vector-config
+      - name: pod-config
+        configMap:
+          name: pod-config
+      - name: myapp-config
+        configMap:
+          name: myapp-config
+      

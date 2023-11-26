@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-config
+  namespace: elk
+data:
+  pod.yaml: |
+    sources:
+      pod_kafka:
+        type: "kafka"
+        bootstrap_servers: "my-cluster-kafka-brokers.kafka.svc:9092"
+        group_id: "pod"
+        topics:
+          - "pod_logs"
+        decoding:
+          codec: "json"
+        auto_offset_reset: "latest"
+
+    transforms:
+      pod_transform:
+        type: remap
+        inputs:    # 匹配输入源
+          - pod_kafka
+        source: |
+          del(.agent)
+          del(.event)
+          del(.ecs)
+          del(.host)
+          del(.input)
+          del(.kubernetes.labels)
+          del(.log)
+          del(.orchestrator)
+          del(.stream)
+    
+    sinks:
+      pod_es:
+        type: elasticsearch
+        inputs: ["pod_transform"] # 匹配转换配置
+        api_version: "v8"        # ES版本，非必填
+        mode: "data_stream" # 数据流方式写入
+        auth: # es认证信息 
+          strategy: "basic"
+          user: "elastic"
+          password: "2zg5q6AU7xW5jY649yuEpZ47"
+        data_stream: # 数据流名称配置
+          type: "logs"
+          dataset: "pod"
+          namespace: "elk"
+        endpoints: ["https://elasticsearch-es-http.elk.svc:9200"] # es连接地址
+        tls: # tls证书配置
+          verify_certificate: false # 跳过证书验证

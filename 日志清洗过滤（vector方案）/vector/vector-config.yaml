@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: elk
+data:
+  vector.yaml: |
+    data_dir: "/var/lib/vector"
+    api:
+      enabled: true
+      address: "0.0.0.0:8686"
+      
+    sources:
+      metrics:
+        type: internal_metrics
+        namespace: vector
+        scrape_interval_secs: 30
+
+    sinks:
+      prometheus:
+        type: prometheus_exporter
+        inputs:
+          - metrics
+        address: 0.0.0.0:9598
+        default_namespace: service

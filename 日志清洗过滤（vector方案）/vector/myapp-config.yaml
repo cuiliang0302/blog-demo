@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-config
+  namespace: elk
+data:
+  myapp.yaml: |
+    sources:
+      myapp_kafka:
+        type: "kafka"
+        bootstrap_servers: "my-cluster-kafka-brokers.kafka.svc:9092"
+        group_id: "myapp"
+        topics:
+          - "pod_logs"
+        decoding:
+          codec: "json"
+        auto_offset_reset: "latest"
+      
+    transforms:
+      myapp_filter:
+        type: filter
+        inputs:    # 匹配输入源
+          - myapp_kafka
+        condition: |
+          .kubernetes.deployment.name == "log-demo"
+      myapp_transform:
+        type: remap
+        inputs:    # 匹配输入源
+          - myapp_filter
+        source: |
+          . = parse_regex!(.message, r'^(?<logtime>[^|]+) \| (?<level>[A-Z]*) *\| __main__:(?<class>\D*:\d*) - (?<content>.*)$') # 正则提取logtime、level、class、content
+          .content = replace(.content, "'", "\"") # 将content单引号替换为双引号
+          .content = parse_json!(.content) # json解析content内容
+          .access_status = (.content.access_status) # 将content中的子字段提取到根级
+          .http_user_agent = (.content.http_user_agent)
+          .remote_address = (.content.remote_address)
+          .request_length = (.content.request_length)
+          .request_method = (.content.request_method)
+          .request_uri = (.content.request_uri)
+          .server_name = (.content.server_name)
+          .time_finish = (.content.time_finish)
+          .access_status = (.content.access_status)
+          .time_start = (.content.time_start)
+          del(.content) # 删除content字段
+          .logtime = parse_timestamp!((.logtime), format:"%Y-%m-%d %H:%M:%S.%3f") # 格式化时间字段
+          .time_start = parse_timestamp!((.time_start), format:"%Y-%m-%dT%H:%M:%S.%3f%:z") 
+          .time_finish = parse_timestamp!((.time_finish), format:"%Y-%m-%dT%H:%M:%S.%3f%:z")
+          .level = downcase(.level) # 将level字段值转小写
+          .geoip = get_enrichment_table_record!("geoip_table",
+          {
+            "ip": .remote_address
+          }) # 地理位置信息解析
+        
+    sinks:
+      myapp_es:
+        type: elasticsearch
+        inputs: ["myapp_transform"] # 匹配转换配置
+        api_version: "v8"        # ES版本，非必填
+        mode: "data_stream" # 数据流方式写入
+        auth: # es认证信息 
+          strategy: "basic"
+          user: "elastic"
+          password: "2zg5q6AU7xW5jY649yuEpZ47"
+        data_stream: # 数据流名称配置
+          type: "logs"
+          dataset: "myapp"
+          namespace: "elk"
+        endpoints: ["https://elasticsearch-es-http.elk.svc:9200"] # es连接地址
+        tls: # tls证书配置
+          verify_certificate: false # 跳过证书验证 
+    
+    enrichment_tables:
+      geoip_table: # 指定geoip数据库文件
+        path: "/etc/vector/GeoLite2-City.mmdb"
+        type: geoip
