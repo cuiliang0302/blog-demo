@@ -1,0 +1,28 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: postgres
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: postgres
+  namespace: postgres
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+    - match: Host(`postgres-operator-ui.cuiliangblog.cn`)
+      kind: Rule
+      services:
+        - name: postgres-operator-ui
+          port: 80
+      middlewares:
+        - name: redirect-https-middleware

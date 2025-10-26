@@ -1,0 +1,17 @@
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: k8sfs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated: # 元数据3副本机制
+      size: 3
+  dataPools:
+    - name: replicated
+      replicated: # 数据池数据3副本机制
+        size: 3 
+  preserveFilesystemOnDelete: true # 当 CephFilesystem资源被删除时，会保留文件系统和其中的数据
+  metadataServer:
+    activeCount: 2 # 指定MDS实例为2，既双主模式
+    activeStandby: true # 当MDS服务异常时，启用备用MDS   

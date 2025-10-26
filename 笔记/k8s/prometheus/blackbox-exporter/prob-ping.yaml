@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: probe-ping
+  namespace: monitoring
+spec:
+  jobName: probe-ping
+  prober:
+    url: blackbox-exporter.monitoring.svc:19115
+  module: icmp
+  interval: 30s 
+  targets:
+    staticConfig:
+      static:
+        - 8.8.8.8
+      labels:
+        env: prod
+  sampleLimit: 100

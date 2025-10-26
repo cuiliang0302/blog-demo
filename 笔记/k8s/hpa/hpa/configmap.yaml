@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: default
+data:
+  nginx.conf: |
+    worker_processes  1;
+    events {
+        worker_connections  1024;
+    }
+    http {
+        server {
+            listen 80;
+            location / {
+                root /usr/share/nginx/html;
+                index index.html;
+            }
+
+            # Prometheus 需要的 stub_status 页面
+            location /stub_status {
+                stub_status;
+                allow 127.0.0.1;
+                allow ::1;
+                allow 10.0.0.0/8; # 允许 Prometheus 访问
+                deny all;
+            }
+        }
+    }

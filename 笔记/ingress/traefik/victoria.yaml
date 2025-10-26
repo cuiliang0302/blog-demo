@@ -1,0 +1,65 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: victoria
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: victoria
+  namespace: victoria 
+spec:
+  entryPoints:
+  - web
+  - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+  - match: Host(`vmselect.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: vmselect-vmcluster   # 与svc的name一致
+        port: 8481    # 与svc的port一致  
+    middlewares:
+      - name: redirect-https-middleware    
+  - match: Host(`vmalert.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: vmalert-vmalert   # 与svc的name一致
+        port: 8080    # 与svc的port一致  
+    middlewares:
+      - name: redirect-https-middleware    
+  - match: Host(`vmalertmanager.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: vmalertmanager-vmalertmanager   # 与svc的name一致
+        port: 9093    # 与svc的port一致  
+    middlewares:
+      - name: redirect-https-middleware 
+  - match: Host(`vmagent-mhtl.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: vmagent-vmagent    # 与svc的name一致
+        port: 8429    # 与svc的port一致  
+    middlewares:
+      - name: redirect-https-middleware 
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vminsert
+  namespace: victoria 
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`vminsert-vmcluster.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: vminsert-vmcluster   # 与svc的name一致
+        port: 8480    # 与svc的port一致  
+      

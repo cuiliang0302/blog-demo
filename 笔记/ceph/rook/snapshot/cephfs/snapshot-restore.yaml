@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cephfs-pvc-restore
+  labels:
+    app: redis
+spec:
+  storageClassName: ceph-fs # sc名称
+  dataSource:
+    name: cephfs-pvc-snapshot # 快照名称
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-restore
+  labels:
+    app: redis
+spec:
+  replicas: 3  # 创建3个副本，每个副本会挂载同一个PVC
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: harbor.local.com/library/redis:7
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: "/data"
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: cephfs-pvc-restore # 使用恢复的pvc

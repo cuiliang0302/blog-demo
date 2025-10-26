@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: opentelemetry # ServiceMonitor名称
+  namespace: opentelemetry # ServiceMonitor所在名称空间
+spec:
+  jobLabel: opentelemetry # job名称
+  endpoints: # prometheus所采集Metrics地址配置，endpoints为一个数组，可以创建多个，但是每个endpoints包含三个字段interval、path、port
+  - port: prometheus # prometheus采集数据的端口，这里为port的name，主要是通过spec.selector中选择对应的svc，在选中的svc中匹配该端口
+    interval: 30s # prometheus采集数据的周期，单位为秒
+    scheme: http # 协议
+    path: /metrics # prometheus采集数据的路径
+  selector: # svc标签选择器，匹配service的labels
+    matchLabels:
+      app.kubernetes.io/name: center-collector
+      operator.opentelemetry.io/collector-service-type: base
+  namespaceSelector: # namespace选择
+    matchNames:
+    - opentelemetry

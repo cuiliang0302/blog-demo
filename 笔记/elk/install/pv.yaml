@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data-pv0
+  labels:
+    app: es-pv0
+spec:
+  capacity:
+    storage: 50Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain # 删除策略
+  storageClassName: local-storage # storageClass名称，与前面创建的storageClass保持一致
+  local:
+    path: /data/es-data # 本地存储路径
+  nodeAffinity: # 调度至k8s-1节点
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data-pv1
+  labels:
+    app: es-pv1
+spec:
+  capacity:
+    storage: 50Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain # 删除策略
+  storageClassName: local-storage # storageClass名称，与前面创建的storageClass保持一致
+  local:
+    path: /data/es-data # 本地存储路径
+  nodeAffinity: 
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-2
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data-pv2
+  labels:
+    app: es-pv2
+spec:
+  capacity:
+    storage: 50Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain # 删除策略
+  storageClassName: local-storage # storageClass名称，与前面创建的storageClass保持一致
+  local:
+    path: /data/es-data # 本地存储路径
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - k8s-3

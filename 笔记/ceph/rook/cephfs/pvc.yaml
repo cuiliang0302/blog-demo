@@ -1,0 +1,11 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: fs-pvc
+spec:
+  storageClassName: ceph-fs # StorageClass名称
+  accessModes:
+    - ReadWriteMany # 多个资源同时读写
+  resources:
+    requests:
+      storage: 10Mi  

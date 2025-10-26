@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devops-app
+  namespace: argocd
+spec:
+  project: devops
+  source:
+    repoURL: http://gitlab.cuiliangblog.cn/devops/app-repo.git
+    targetRevision: main
+    path: apps        # 指向保存 Application YAML 的目录
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

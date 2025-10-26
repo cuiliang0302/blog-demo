@@ -1,0 +1,28 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: helm
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: helm
+  namespace: helm
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+  - match: Host(`helm.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: helm-dashboard  # 与svc的name一致
+        port: 8080     # 与svc的port一致
+    middlewares:
+      - name: redirect-https-middleware

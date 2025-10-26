@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc-restore
+spec:
+  storageClassName: ceph-rbd # sc名称
+  dataSource:
+    name: rbd-pvc-snapshot # 快照名称
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis
+  labels:
+    name: redis
+spec:
+  containers:
+  - name: redis
+    image: harbor.local.com/library/redis:7
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 6379
+    volumeMounts:
+      - name: redis-data
+        mountPath: "/data"
+  volumes:
+    - name: redis-data
+      persistentVolumeClaim:
+        claimName: rbd-pvc-restore # 使用恢复的pvc

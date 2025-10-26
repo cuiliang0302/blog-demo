@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redisinsight
+  namespace: redis
+  labels:
+    app: redisinsight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redisinsight
+  template:
+    metadata:
+      labels:
+        app: redisinsight
+    spec:
+      containers:
+      - name:  redisinsight
+        image: redislabs/redisinsight:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: db
+          mountPath: /db
+        ports:
+        - containerPort: 5540
+          protocol: TCP
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: db
+        persistentVolumeClaim:
+          claimName: redisinsight-pvc

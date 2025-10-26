@@ -1,0 +1,8 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStoreUser
+metadata:
+  name: my-user
+  namespace: rook-ceph
+spec:
+  store: k8s-rgw # 访问的CephObjectStore资源
+  displayName: "my display name"

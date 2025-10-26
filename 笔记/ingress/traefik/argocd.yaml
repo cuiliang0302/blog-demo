@@ -1,0 +1,38 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: argocd
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: argocd-transport
+  namespace: argocd
+spec:
+  serverName: "argocd.cuiliangblog.cn"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls                
+  routes:
+  - match: Host(`argocd.cuiliangblog.cn`)
+    kind: Rule
+    services:
+    - name: argocd-server
+      port: 443
+      serversTransport: argocd-transport
+    middlewares:
+    - name: redirect-https-middleware

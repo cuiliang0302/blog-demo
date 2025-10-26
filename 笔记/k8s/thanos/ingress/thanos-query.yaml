@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: thanos-query
+  namespace: thanos
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`thanos-query.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: thanos-query
+        port: 9090

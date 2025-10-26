@@ -1,0 +1,55 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: elk
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: elasticsearch-transport
+  namespace: elk
+spec:
+  serverName: "elasticsearch.cuiliangblog.cn"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: kibana-transport
+  namespace: elk
+spec:
+  serverName: "kibana.cuiliangblog.cn"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: elk
+  namespace: elk
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls                
+  routes:
+  - match: Host(`elasticsearch.cuiliangblog.cn`)
+    kind: Rule
+    services:
+    - name: elasticsearch-es-http
+      port: 9200
+      serversTransport: elasticsearch-transport
+    middlewares:
+    - name: redirect-https-middleware
+  - match: Host(`kibana.cuiliangblog.cn`)
+    kind: Rule
+    services:
+    - name: kibana-kb-http
+      port: 5601
+      serversTransport: kibana-transport
+    middlewares:
+    - name: redirect-https-middleware

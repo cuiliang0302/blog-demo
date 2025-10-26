@@ -1,0 +1,29 @@
+# 生产环境service对应的ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: myapp-prod
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`prod.myapp.com`) # 生产环境域名
+    kind: Rule
+    services:
+      - name: bluegreen-active  # 与svc的name一致
+        port: 80 # 与svc的port一致
+---
+# 预览环境service对应的ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: myapp-test
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`test.myapp.com`) # 测试环境域名
+    kind: Rule
+    services:
+      - name: bluegreen-preview # 与svc的name一致
+        port: 80 # 与svc的port一致

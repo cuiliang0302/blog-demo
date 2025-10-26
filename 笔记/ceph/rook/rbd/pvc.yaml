@@ -1,0 +1,11 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-rbd
+spec:
+  storageClassName: ceph-rbd # StorageClass名称
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi # 修改为10Gi

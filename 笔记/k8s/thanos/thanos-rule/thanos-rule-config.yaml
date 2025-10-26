@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: thanosruler-alertmanager-config
+  namespace: monitoring
+stringData:
+  alertmanager-configs.yaml: |-
+    alertmanagers:
+    - static_configs:
+      - "dnssrv+_web._tcp.alertmanager-main.monitoring.svc.cluster.local"
+      api_version: v2  
+type: Opaque

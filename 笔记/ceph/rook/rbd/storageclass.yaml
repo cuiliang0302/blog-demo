@@ -1,0 +1,19 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+   name: ceph-rbd
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+    clusterID: rook-ceph
+    pool: k8s-rbd # 使用的存储池
+    imageFormat: "2" # Ceph RBD 镜像的格式
+    imageFeatures: "layering" # 启用 Ceph RBD 的分层功能，使得存储卷可以基于层次结构进行克隆和快照管理
+    csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+    csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+    csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+    csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+    csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+    csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+    csi.storage.k8s.io/fstype: ext4 # 格式化磁盘类型
+reclaimPolicy: Delete # 当 PVC 被删除时，动态创建的 PV 也会被删除，清理对应的存储空间。
+allowVolumeExpansion: true # 允许对存储卷进行扩容。

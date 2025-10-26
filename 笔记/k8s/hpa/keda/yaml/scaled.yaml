@@ -1,0 +1,19 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: a
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app-a
+  pollingInterval: 15
+  minReplicaCount: 1
+  maxReplicaCount: 100
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-k8s.monitoring.svc:9090 # 替换 Prometheus 的地址
+        query: | # 计算最近1分钟消息队列内容数95值的 PromQL
+          quantile_over_time(0.95, sum(rabbitmq_queue_messages) [1m:])
+        threshold: "10" # 每个副本能承受的工作量

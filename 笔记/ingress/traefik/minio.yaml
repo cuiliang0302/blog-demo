@@ -1,0 +1,31 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: minio
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+  - match: Host(`minio.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: minio-service  # 与svc的name一致
+        port: 9090           # 与svc的port一致
+  - match: Host(`minio-api.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: minio-service  # 与svc的name一致
+        port: 9000           # 与svc的port一致

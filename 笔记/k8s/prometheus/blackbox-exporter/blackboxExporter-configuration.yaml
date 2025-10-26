@@ -1,0 +1,38 @@
+apiVersion: v1
+data:
+  config.yml: |-
+    "modules":
+      "http_2xx": # GET请求
+        "http":
+          "preferred_ip_protocol": "ip4"
+          "valid_http_versions": ["HTTP/1.1", "HTTP/2"]
+          "method": "GET"
+        "prober": "http"
+        "timeout": "5s"
+      "http_post_2xx": # POST请求
+        "http":
+          "method": "POST"
+          "preferred_ip_protocol": "ip4"
+        "prober": "http"
+      "tcp_connect": # tcp连接
+        "prober": "tcp"
+        "timeout": "10s"
+        "tcp":
+          "preferred_ip_protocol": "ip4"
+      "dns":  # DNS 检测模块
+        "prober": "dns"
+        "dns":
+          "transport_protocol": "udp"  # 默认是 udp，tcp
+          "preferred_ip_protocol": "ip4"  # 默认是 ip6
+          query_name: "kubernetes.default.svc.cluster.local" # 利用这个域名来检查dns服务器
+      icmp:  # ping 检测服务器的存活
+        prober: icmp
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: exporter
+    app.kubernetes.io/name: blackbox-exporter
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 0.25.0
+  name: blackbox-exporter-configuration
+  namespace: monitoring

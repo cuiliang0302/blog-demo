@@ -1,0 +1,24 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: ceph-transport
+  namespace: rook-ceph
+spec:
+  serverName: "ceph.local.com"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard
+  namespace: rook-ceph
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`ceph.local.com`) # 域名
+    kind: Rule
+    services:
+      - name: rook-ceph-mgr-dashboard  # 与svc的name一致
+        port: 8443           # 与svc的port一致
+        serversTransport: ceph-transport

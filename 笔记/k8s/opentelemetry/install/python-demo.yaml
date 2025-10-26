@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-demo
+spec:
+  selector:
+    matchLabels:
+      app: python-demo
+  template:
+    metadata:
+      labels:
+        app: python-demo
+      annotations:
+        instrumentation.opentelemetry.io/inject-python: "opentelemetry/python-instrumentation" # 填写 Instrumentation 资源的名称
+        sidecar.opentelemetry.io/inject: "opentelemetry/sidecar" # 注入一个 sidecar 模式的 OpenTelemetry Collector
+    spec:
+      containers:
+      - name: python-demo
+        image: ghcr.io/benc-uk/python-demoapp:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-demo
+spec:
+  selector:
+    app: python-demo
+  ports:
+  - port: 5000
+    targetPort: 5000
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: python-demo
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`python-demo.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: python-demo
+        port: 5000

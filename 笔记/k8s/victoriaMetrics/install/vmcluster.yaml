@@ -1,0 +1,50 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMCluster
+metadata:
+  name: vmcluster
+  namespace: victoria
+spec:
+  retentionPeriod: "1" # 默认单位是月，参考 https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#retention
+  vmstorage:
+    replicaCount: 2 # 组件副本数
+    # image:
+    #   repository: victoriametrics/vmstorage
+    #   tag: v1.125.0-cluster
+    #   pullPolicy: IfNotPresent
+    storage:
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          accessModes: [ "ReadWriteOnce" ]
+          storageClassName: nfs-client
+          resources:
+            requests:
+              storage: 100Gi
+      extraArgs: # 复制和重复数据删除
+        dedup.minScrapeInterval: 30s
+  vmselect:
+    replicaCount: 2
+    cacheMountPath: "/select-cache"
+    extraArgs: # 复制和重复数据删除
+      dedup.minScrapeInterval: 30s
+    # image:
+    #   repository: victoriametrics/vmselect
+    #   tag: v1.125.0-cluster
+    #   pullPolicy: IfNotPresent
+    persistentVolume:
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          accessModes: [ "ReadWriteOnce" ]
+          storageClassName: ceph-fs
+          resources:
+            requests:
+              storage: 1Gi
+  vminsert:
+    replicaCount: 2
+    # image:
+    #   repository: victoriametrics/vminsert
+    #   tag: v1.125.0-cluster
+    #   pullPolicy: IfNotPresent

@@ -1,0 +1,9 @@
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: k8s-rbd
+  namespace: rook-ceph
+spec:
+  failureDomain: host # 设置数据复制时副本分布到不同节点
+  replicated: # 数据3副本
+    size: 3

@@ -1,0 +1,25 @@
+# 接收生产流量的Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bluegreen-active
+spec:
+  type: ClusterIP
+  selector:
+    app: myapp
+  ports:
+  - name: http
+    port: 80
+---
+# 接收预览流量的Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bluegreen-preview
+spec:
+  type: ClusterIP
+  selector:
+    app: myapp
+  ports:
+  - name: http
+    port: 80

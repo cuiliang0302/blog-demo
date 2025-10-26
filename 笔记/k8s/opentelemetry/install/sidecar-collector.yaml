@@ -1,0 +1,34 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector          # 定义资源类型为 OpenTelemetryCollector
+metadata:
+  name: sidecar                       # Collector 的名称
+  namespace: opentelemetry
+spec:
+  mode: sidecar                       # 以 sidecar 模式运行（与应用容器同 Pod）
+  imagePullPolicy: IfNotPresent
+  config:                             # Collector 配置部分（结构化 YAML）
+    receivers:
+      otlp:                           # 使用 OTLP 协议作为接收器
+        protocols:
+          grpc: {}                    # 启用 gRPC 协议接收 trace/metric/log 数据
+          http: {}                    # 启用 HTTP 协议接收 trace/metric/log 数据
+    processors:
+      batch: {}                       # 使用 batch 处理器将数据批量发送，提高性能
+
+    exporters:
+      debug: {}                       # 将数据输出到 stdout 日志（用于调试）
+      otlp:                           # 添加一个 OTLP 类型导出器，发送到 central collector
+        endpoint: "center-collector.opentelemetry.svc:4317"  # 替换为 central collector 的地址
+        tls:
+          insecure: true              # 不使用 TLS
+
+    service:
+      telemetry:
+        logs:
+          level: "debug"              # 设置 Collector 自身日志等级为 debug（方便观察日志）
+
+      pipelines:
+        traces:                       # 定义 trace 数据处理流水线
+          receivers: [otlp]           # 从 otlp 接收 trace 数据
+          processors: [batch]         # 使用批处理器
+          exporters: [debug, otlp]    # 同时导出到 debug（日志）和 otlp（中心 Collector）

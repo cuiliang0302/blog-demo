@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-ui-helm-values
+  namespace: kafka
+data:
+  KAFKA_CLUSTERS_0_NAME: "kafka-cluster"
+  KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "my-cluster-kafka-brokers.kafka.svc:9092"
+  AUTH_TYPE: "DISABLED"
+  MANAGEMENT_HEALTH_LDAP_ENABLED: "FALSE" 
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kafka-ui
+  namespace: kafka
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`kafka-ui.cuiliangblog.cn`) 
+    kind: Rule
+    services:
+      - name: kafka-ui
+        port: 80

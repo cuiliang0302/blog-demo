@@ -1,0 +1,28 @@
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: k8s-rgw
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    failureDomain: host # 主副数据分布在不同机器
+    replicated: # 副本数量
+      size: 3
+  dataPool:
+    failureDomain: host
+    erasureCoded:
+      dataChunks: 2 # 数据块数量
+      codingChunks: 1 # 编码快数量
+  preservePoolsOnDelete: true # 当删除对象存储时，保留相关的池
+  gateway:
+    port: 8800 # 网关使用的端口
+    instances: 3 # 网关实例的数量,创建三个rgw实现高可用
+    placement:
+      nodeAffinity: # 指定节点调度至ingress节点，配合vip实现高可用
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: ingress
+              operator: In
+              values:
+              - "true"

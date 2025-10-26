@@ -1,0 +1,20 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-rbd
+provisioner: rbd.csi.ceph.com
+reclaimPolicy: Delete # 数据删除策略
+allowVolumeExpansion: true
+mountOptions:
+  - discard
+parameters:
+  clusterID: 1945ab20-95e5-11ef-a379-63253f41bb80 # 集群fsid
+  pool: k8s # 使用的的 pool
+  imageFeatures: layering # 可选，允许在 RBD 镜像上创建快照。
+  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret # 用于访问 ceph 的 secrets
+  csi.storage.k8s.io/provisioner-secret-namespace: ceph-csi-rbd # 访问ceph的secrets所在的名称空间
+  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret # 指定卷扩展操作使用的Secret名称
+  csi.storage.k8s.io/controller-expand-secret-namespace: ceph-csi-rbd
+  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret # 节点阶段node-stage操作使用的 Secret 名称
+  csi.storage.k8s.io/node-stage-secret-namespace: ceph-csi-rbd
+  csi.storage.k8s.io/fstype: ext4 # 文件系统类型，默认值是 ext4

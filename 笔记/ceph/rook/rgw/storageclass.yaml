@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+   name: ceph-rgw
+provisioner: rook-ceph.ceph.rook.io/bucket
+reclaimPolicy: Delete # 回收策略
+parameters:
+  objectStoreName: k8s-rgw # 使用的CephObjectStore名称
+  objectStoreNamespace: rook-ceph

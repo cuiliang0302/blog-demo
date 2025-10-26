@@ -1,0 +1,7 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: ceph-bucket
+spec:
+  generateBucketName: k8s-bucket # 创建的bucket名称
+  storageClassName: ceph-rgw # 使用的StorageClass名称

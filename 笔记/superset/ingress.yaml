@@ -1,0 +1,13 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: superset
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`superset.cuiliangblog.cn`) # 域名
+    kind: Rule
+    services:
+      - name: superset  # 与svc的name一致
+        port: 8088      # 与svc的port一致

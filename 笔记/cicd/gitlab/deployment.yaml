@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  selector:
+    matchLabels:
+      app: gitlab
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:18.4.3-ce.0
+          env:
+            - name: GITLAB_SKIP_UNMIGRATED_DATA_CHECK
+              value: "true"
+            - name: GITLAB_OMNIBUS_CONFIG
+              value: |
+                external_url = 'http://gitlab.cuiliangblog.cn/'
+                prometheus['enable'] = false
+                alertmanager['enable'] = false
+                gitlab_rails['time_zone'] = 'Asia/Shanghai'
+                gitlab_rails['gitlab_email_enabled'] = false
+                gitlab_rails['smtp_enable'] = false
+                gitlab_rails['gravatar_plain_url'] = 'http://gravatar.loli.net/avatar/%{hash}?s=%{size}&d=identicon'
+                gitlab_rails['gravatar_ssl_url'] = 'https://gravatar.loli.net/avatar/%{hash}?s=%{size}&d=identicon'
+                nginx['worker_processes'] = 2
+                postgresql['max_connections'] = 100
+                postgresql['shared_buffers'] = "128MB"
+          ports:
+            - containerPort: 80
+              name: http
+            - containerPort: 443
+              name: https
+            - containerPort: 22
+              name: ssh
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "curl -s http://127.0.0.1/-/health"]
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "curl -s http://127.0.0.1/-/health"]
+            timeoutSeconds: 5
+            failureThreshold: 3
+            periodSeconds: 60
+          startupProbe:
+            exec:
+              command: ["sh", "-c", "curl -s http://127.0.0.1/-/health"]
+            failureThreshold: 20
+            periodSeconds: 120
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "4"
+          volumeMounts:
+            - name: data
+              mountPath: /var/opt/gitlab
+            - name: config
+              mountPath: /etc/gitlab
+            - name: log
+              mountPath: /var/log/gitlab
+            - mountPath: /dev/shm
+              name: cache-volume
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitlab-data-pvc
+        - name: config
+          persistentVolumeClaim:
+            claimName: gitlab-config-pvc
+        - name: log
+          emptyDir: {}
+        - name: cache-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi

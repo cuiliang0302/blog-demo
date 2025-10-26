@@ -1,0 +1,9 @@
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+ name: happylau-pool
+spec:
+ failureDomain: osd #故障域
+ replicated:
+   size: 3
+   requireSafeReplicaSize: true

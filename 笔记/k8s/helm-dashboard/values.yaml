@@ -1,0 +1,149 @@
+replicaCount: 1
+
+# Flag for setting environment to debug mode 
+debug: false
+
+global:
+  ## @param global.imageRegistry Global Docker image registry
+  imageRegistry: ""
+  ## Optionally specify an array of imagePullSecrets.
+  ## Example:
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  imagePullSecrets: []
+
+image:
+  repository: komodorio/helm-dashboard
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  # Specifies the exact image digest to pull.
+  digest: ""
+  imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1
+    memory: 1Gi
+
+dashboard:
+  allowWriteActions: true
+
+  # default namespace for Helm operations
+  namespace: ""
+
+  persistence:
+    enabled: true
+
+    ## If defined, storageClassName: <storageClass>
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClassName: nfs-client
+
+    ## Helm Dashboard Persistent Volume access modes
+    ## Must match those of existing PV or dynamic provisioner
+    ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    accessModes:
+      - ReadWriteOnce
+
+    ## Helm Dashboard Persistent Volume labels
+    ##
+    labels: {}
+
+    ## Helm Dashboard Persistent Volume annotations
+    ##
+    annotations: {}
+
+    ## Finalizer to ensure PVC is not deleted until the pod is terminated
+    ##
+    finalizers:
+      - kubernetes.io/pvc-protection
+
+    ## Helm Dashboard data Persistent Volume size
+    ##
+    size: 100M
+
+    ## If 'lookupVolumeName' is set to true, Helm will attempt to retrieve
+    ## the current value of 'spec.volumeName' and incorporate it into the template.
+    lookupVolumeName: true
+
+## @param.updateStrategy.type Set up update strategy for helm-dashboard installation.
+## Set to Recreate if you use persistent volume that cannot be mounted by more than one pods to make sure the pods is destroyed first.
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+## Example:
+## updateStrategy:
+##  type: RollingUpdate
+##  rollingUpdate:
+##    maxSurge: 25%
+##    maxUnavailable: 25%
+##
+updateStrategy:
+  type: RollingUpdate
+
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+  loadBalancerIP: null
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+extraArgs:
+  - --no-browser
+  - --bind=0.0.0.0
+
+tolerations: []
+
+affinity: {}
+
+
+testImage:
+  repository: busybox
+  tag: latest
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # tag: ""
+  ## Optionally specify an array of imagePullSecrets.
+  ## Example:
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  imagePullSecrets: []

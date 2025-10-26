@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-cluster-nodeport
+  namespace: postgresql
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: postgresql
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+    nodePort: 30432
+  selector:
+    application: spilo
+    cluster-name: postgresql-cluster
+    spilo-role: replica
+  sessionAffinity: None
+  type: NodePort

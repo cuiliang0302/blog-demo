@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc-clone
+spec:
+  storageClassName: ceph-rbd # sc名称
+  dataSource:
+    name: rbd-pvc-restore # 要克隆的pvc名称
+    kind: PersistentVolumeClaim # 来自pvc
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-clone
+  labels:
+    name: redis-clone
+spec:
+  containers:
+  - name: redis
+    image: harbor.local.com/library/redis:7
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 6379
+    volumeMounts:
+      - name: redis-data
+        mountPath: "/data"
+  volumes:
+    - name: redis-data
+      persistentVolumeClaim:
+        claimName: rbd-pvc-clone # 使用克隆的pvc

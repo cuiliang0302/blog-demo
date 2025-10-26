@@ -1,0 +1,11 @@
+---
+apiVersion: groupsnapshot.storage.k8s.io/v1beta1
+kind: VolumeGroupSnapshot
+metadata:
+  name: cephfs-groupsnapshot
+spec:
+  source:
+    selector:
+      matchLabels: # pvc标签
+        app: redis
+  volumeGroupSnapshotClassName: csi-cephfsplugin-groupsnapclass

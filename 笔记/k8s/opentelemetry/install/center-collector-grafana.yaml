@@ -1,0 +1,51 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+# 元数据定义部分
+metadata:
+  name: center        # Collector 的名称为 center
+  namespace: opentelemetry
+# 具体的配置内容
+spec:
+  replicas: 1           # 设置副本数量为1
+  image: otel/opentelemetry-collector-contrib:latest  # 使用支持 elasticsearch 的镜像
+  imagePullPolicy: IfNotPresent  # 镜像拉取策略为如果不存在则拉取
+  # image: harbor.cuiliangblog.cn/otel/opentelemetry-collector-contrib:latest
+  config:               # 定义 Collector 配置
+    receivers:          # 接收器，用于接收遥测数据（如 trace、metrics、logs）
+      otlp:             # 配置 OTLP（OpenTelemetry Protocol）接收器
+        protocols:      # 启用哪些协议来接收数据
+          grpc: 
+            endpoint: 0.0.0.0:4317      # 启用 gRPC 协议
+          http: 
+            endpoint: 0.0.0.0:4318      # 启用 HTTP 协议
+    processors:         # 处理器，用于处理收集到的数据
+      batch: {}         # 批处理器，用于将数据分批发送，提高效率
+
+    exporters:          # 导出器，用于将处理后的数据发送到后端系统
+      debug: {}         # 使用 debug 导出器，将数据打印到终端（通常用于测试或调试）
+      otlp:               # 数据发送到tempo的grpc端口
+        endpoint: "tempo:4317"
+        tls: # 跳过证书验证
+          insecure: true
+      prometheus:
+        endpoint: "0.0.0.0:9464" # prometheus指标暴露端口
+      otlphttp:
+        endpoint: http://loki.loki.svc:3100/otlp
+
+    service:            # 服务配置部分
+      telemetry:
+        logs:
+          level: "debug"              # 设置 Collector 自身日志等级为 debug（方便观察日志）
+      pipelines:        # 定义处理管道
+        traces:         # 定义 trace 类型的管道
+          receivers: [otlp]                      # 接收器为 OTLP
+          processors: [batch]                    # 使用批处理器
+          exporters: [otlp]                      # 将数据导出到OTLP
+        metrics:        # 定义 metrics 类型的管道
+          receivers: [otlp]                      # 接收器为 OTLP
+          processors: [batch]                    # 使用批处理器
+          exporters: [prometheus]          # 将数据导出到prometheus
+        logs:
+          receivers: [otlp]
+          processors: [batch]                    # 使用批处理器
+          exporters: [otlphttp, debug]

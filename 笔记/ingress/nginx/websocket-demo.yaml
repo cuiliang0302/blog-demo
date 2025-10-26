@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ws
+  name: websocket-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ws
+  template:
+    metadata:
+      labels:
+        app: ws
+    spec:
+      containers:
+      - image: registry-cn-hangzhou.ack.aliyuncs.com/ack-demo/websocket-echo-server:latest
+        imagePullPolicy: IfNotPresent
+        name: echo
+        env:
+         - name: BIND_PORT
+           value: "3000"
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1000Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ws
+  name: websocket-server
+  namespace: default
+spec:
+  ports:
+  - name: ws
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: ws
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    # 根据实际情况调整读写超时时间，默认值为60秒。
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"  # 设置读超时时间为600秒。
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"  # 设置写超时时间为600秒。
+  name: ws
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: test.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: websocket-server
+            port:
+              number: 3000
+        path: /
+        pathType: ImplementationSpecific

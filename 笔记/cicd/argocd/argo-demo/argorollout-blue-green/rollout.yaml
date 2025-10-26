@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: bluegreen-rollout # 定义Rollout的名称
+spec:
+  replicas: 2 # 期望副本数
+  strategy:
+    blueGreen: # 指定蓝绿部署策略
+      activeService: bluegreen-active # 用于接收生产流量的Service
+      previewService: bluegreen-preview # 用于接收预览流量的Service
+      autoPromotionEnabled: false # 是否自动提升预览版本为活动版本
+      previewReplicaCount: 1 # 预览版本的副本数
+  revisionHistoryLimit: 2 # 保留的历史版本
+  selector: # 类似deployment的selector
+    matchLabels:
+      app: myapp
+  template: # 类似deployment的template
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: ikubernetes/myapp:v1
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP

@@ -1,0 +1,42 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: monitoring
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: monitoring
+  namespace: monitoring
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+  - match: Host(`alertmanager.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: alertmanager-main
+        port: 9093 
+    middlewares:
+      - name: redirect-https-middleware
+  - match: Host(`grafana.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: grafana
+        port: 3000
+    middlewares:
+      - name: redirect-https-middleware
+  - match: Host(`prometheus.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: prometheus-k8s
+        port: 9090
+    middlewares:
+      - name: redirect-https-middleware

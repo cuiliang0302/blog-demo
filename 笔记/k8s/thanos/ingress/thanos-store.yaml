@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: thanos-store
+  namespace: thanos
+spec:
+  entryPoints:
+  - web
+  routes:
+    - match: Host(`thanos-store.cuiliangblog.cn`)
+      kind: Rule
+      services:
+        - name: thanos-store
+          port: 10902

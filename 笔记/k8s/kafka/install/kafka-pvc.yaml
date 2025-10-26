@@ -1,0 +1,38 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: data-0-my-cluster-dual-role-0
+  namespace: kafka
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: data-0-my-cluster-dual-role-1
+  namespace: kafka
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: data-0-my-cluster-dual-role-2
+  namespace: kafka
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

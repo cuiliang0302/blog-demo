@@ -1,0 +1,363 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+  name: node-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: node-rules
+    rules:
+    - alert: Node内存不足
+      expr: '(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机内存不足(实例 {{ $labels.instance }})
+        description: "节点内存不足（剩余小于 10%） \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node内存压力过大
+      expr: '(rate(node_vmstat_pgmajfault[1m]) > 1000) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机内存压力过大(实例 {{ $labels.instance }})
+        description: "节点内存压力过大，主要缺页错误速率较高 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node网络接收异常
+      expr: '(sum by(instance) (rate(node_network_receive_bytes_total[2m])) / 1024 / 1024 > 100) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机网络接收异常(实例 {{ $labels.instance }})
+        description: "主机网络接口可能接收了过多数据（> 100 MB/s） \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Node网络发送异常
+      expr: '(sum by(instance) (rate(node_network_transmit_bytes_total[2m])) / 1024 / 1024 > 100) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机网络发送异常(实例 {{ $labels.instance }})
+        description: "主机网络接口可能发送了过多数据（> 100 MB/s） \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Node磁盘读取速率异常
+      expr: '(sum by(instance) (rate(node_disk_read_bytes_total[2m])) / 1024 / 1024 > 50) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机磁盘读取速率异常(实例 {{ $labels.instance }})
+        description: "磁盘可能读取了过多数据（> 50 MB/s） \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Node磁盘写入速率异常
+      expr: '(sum by(instance) (rate(node_disk_written_bytes_total[2m])) / 1024 / 1024 > 50) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机磁盘写入速率异常(实例 {{ $labels.instance }})
+        description: "磁盘可能写入了过多数据（> 50 MB/s） \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Node磁盘空间不足
+      expr: '((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON(instance, device, mountpoint) node_filesystem_readonly == 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机磁盘空间不足(实例 {{ $labels.instance }})
+        description: "磁盘几乎已满（剩余小于 10%） \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node磁盘将在24小时内填满
+      expr: '((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and ON(instance, device, mountpoint) predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs"}[1h],24* 3600) < 0 and ON(instance, device, mountpoint) node_filesystem_readonly == 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机磁盘将在24小时内填满(实例 {{ $labels.instance }})
+        description: "根据当前写入速率，预计磁盘将在未来24小时内填满 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeInode数不足
+      expr: '(node_filesystem_files_free{fstype!="msdosfs"} / node_filesystem_files{fstype!="msdosfs"} * 100 < 10 and ON(instance, device, mountpoint) node_filesystem_readonly == 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机Inode数不足(实例 {{ $labels.instance }})
+        description: "磁盘的可用 Inode数几乎用尽（剩余小于 10%） \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeInode将在24小时内耗尽
+      expr: '(node_filesystem_files_free{fstype!="msdosfs"} / node_filesystem_files{fstype!="msdosfs"} * 100 < 10 and predict_linear(node_filesystem_files_free{fstype!="msdosfs"}[1h],24* 3600) < 0 and ON(instance, device, mountpoint) node_filesystem_readonly{fstype!="msdosfs"} == 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机Inode将在24小时内耗尽(实例 {{ $labels.instance }})
+        description: "文件系统预计在未来24小时内耗尽 inode，当前写入速率 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node异常磁盘读取延迟
+      expr: '(rate(node_disk_read_time_seconds_total[1m]) / rate(node_disk_reads_completed_total[1m]) > 0.1 and rate(node_disk_reads_completed_total[1m]) > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'       
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机异常磁盘读取延迟(实例 {{ $labels.instance }})
+        description: "磁盘延迟增加 (读取操作 > 101ms) \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node异常磁盘写入延迟
+      expr: '(rate(node_disk_write_time_seconds_total[1m]) / rate(node_disk_writes_completed_total[1m]) > 0.1 and rate(node_disk_writes_completed_total[1m]) > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'    
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机异常磁盘写入延迟(实例 {{ $labels.instance }})
+        description: "磁盘延迟增加 (写入操作 > 101ms) \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: NodeCPU负载过高
+      expr: '(sum by(instance) (avg by (mode, instance) (rate(node_cpu_seconds_total{mode!="idle"}[2m]))) > 0.8) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 11m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机CPU负载过高(实例 {{ $labels.instance }})
+        description: "CPU负载 > 80% \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeCPU被偷占
+      expr: '(avg by(instance) (rate(node_cpu_seconds_total{mode="steal"}[5m])) * 100 > 10) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机CPU被偷占(实例 {{ $labels.instance }})
+        description: "CPUsteal 超过 10%。可能是邻居任务干扰导致虚拟机性能下降，或者是 Spot 实例没有足够的信用。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeCPU-IO等待时间过高
+      expr: '(avg by(instance) (rate(node_cpu_seconds_total{mode="iowait"}[5m])) * 100 > 10) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机CPUIO等待时间过高(实例 {{ $labels.instance }})
+        description: "CPUiowait 超过 10%。高 iowait 表明磁盘或网络成为性能瓶颈。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node磁盘-IO异常
+      expr: '(rate(node_disk_io_time_seconds_total[1m]) > 0.5) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 10m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机磁盘 IO 异常(实例 {{ $labels.instance }})
+        description: "磁盘 IO 时间过高，检查存储是否有问题。 \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Node上下文切换过高
+      expr: '(rate(node_context_switches_total[15m])/count without(mode,cpu) (node_cpu_seconds_total{mode="idle"}))/(rate(node_context_switches_total[1d])/count without(mode,cpu) (node_cpu_seconds_total{mode="idle"})) > 5'
+      for: 1m
+      labels:
+        severity: info
+      annotations:
+        summary: 主机上下文切换过高(实例 {{ $labels.instance }})
+        description: "节点的上下文切换频率在最近 15 分钟内是日均值的五倍。 \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Node交换分区即将耗尽
+      expr: '((1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 80) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机交换分区即将耗尽(实例 {{ $labels.instance }})
+        description: "交换分区使用率超过 80%。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Nodesystemd服务崩溃
+      expr: '(node_systemd_unit_state{state="failed"} == 1) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机systemd 服务崩溃(实例 {{ $labels.instance }})
+        description: "systemd 服务崩溃。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node硬件组件过热
+      expr: '((node_hwmon_temp_celsius * ignoring(label) group_left(instance, job, node, sensor) node_hwmon_sensor_label{label!="tctl"} > 75)) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机硬件组件过热(实例 {{ $labels.instance }})
+        description: "物理硬件组件温度过高。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node节点温度告警
+      expr: '((node_hwmon_temp_crit_alarm_celsius == 1) or (node_hwmon_temp_alarm == 1)) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: 主机节点温度告警(实例 {{ $labels.instance }})
+        description: "物理节点触发温度报警。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeRAID阵列已失效
+      expr: '(node_md_state{state="inactive"} > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: 主机RAID阵列已失效(实例 {{ $labels.instance }})
+        description: "RAID阵列 {{ $labels.device }} 因磁盘故障进入降级状态。备用磁盘数量不足，无法自动修复问题。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeRAID磁盘故障
+      expr: '(node_md_disks{state="failed"} > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机RAID磁盘故障(实例 {{ $labels.instance }})
+        description: "RAID阵列中至少有一个磁盘在 {{ $labels.instance }} 上发生故障。阵列 {{ $labels.md_device }} 需要维护并可能需要更换磁盘。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node内核版本差异
+      expr: '(count(sum(label_replace(node_uname_info, "kernel", "$1", "release", "([0-9]+.[0-9]+.[0-9]+).*")) by (kernel)) > 1) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 6h
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机内核版本差异(实例 {{ $labels.instance }})
+        description: "不同的内核版本正在运行 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node检测到OOMKill
+      expr: '(increase(node_vmstat_oom_kill[1m]) > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机检测到 OOM Kill(实例 {{ $labels.instance }})
+        description: "检测到 OOM Kill \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node检测到可纠正的EDAC错误
+      expr: '(increase(node_edac_correctable_errors_total[1m]) > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: info
+      annotations:
+        summary:  主机检测到可纠正的 EDAC 错误(实例 {{ $labels.instance }})
+        description: "主机{{ $labels.instance }} 在过去 5 分钟内报告了 {{ printf \"%.0f\" $value }} 个可纠正的内存错误。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node检测到不可纠正的EDAC错误
+      expr: '(node_edac_uncorrectable_errors_total > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机检测到不可纠正的 EDAC 错误(实例 {{ $labels.instance }})
+        description: "主机{{ $labels.instance }} 在过去 5 分钟内报告了 {{ printf \"%.0f\" $value }} 个不可纠正的内存错误。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node网络接收错误
+      expr: '(rate(node_network_receive_errs_total[2m]) / rate(node_network_receive_packets_total[2m]) > 0.01) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机网络接收错误(实例 {{ $labels.instance }})
+        description: "主机{{ $labels.instance }} 接口 {{ $labels.device }} 在过去两分钟内遇到了 {{ printf \"%.0f\" $value }} 个接收错误。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node网络发送错误
+      expr: '(rate(node_network_transmit_errs_total[2m]) / rate(node_network_transmit_packets_total[2m]) > 0.01) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机网络发送错误(实例 {{ $labels.instance }})
+        description: "主机{{ $labels.instance }} 接口 {{ $labels.device }} 在过去两分钟内遇到了 {{ printf \"%.0f\" $value }} 个发送错误。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+        
+    - alert: Node网络接口饱和
+      expr: '((rate(node_network_receive_bytes_total{device!~"^tap.*|^vnet.*|^veth.*|^tun.*"}[1m]) + rate(node_network_transmit_bytes_total{device!~"^tap.*|^vnet.*|^veth.*|^tun.*"}[1m])) / node_network_speed_bytes{device!~"^tap.*|^vnet.*|^veth.*|^tun.*"} > 0.8 < 10000) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机网络接口饱和(实例 {{ $labels.instance }})
+        description: "主机\"{{ $labels.device }}\" 上的网络接口 \"{{ $labels.instance }}\" 过载。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node网络绑定降级
+      expr: '((node_bonding_active - node_bonding_slaves) != 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机网络绑定降级(实例 {{ $labels.instance }})
+        description: "主机\"{{ $labels.device }}\" 上的绑定 \"{{ $labels.instance }}\" 出现降级。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: NodeConntrack接近限制
+      expr: '(node_nf_conntrack_entries / node_nf_conntrack_entries_limit > 0.8) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机Conntrack接近限制(实例 {{ $labels.instance }})
+        description: "Conntrack数量接近限制。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node时钟偏差
+      expr: '((node_timex_offset_seconds > 0.05 and deriv(node_timex_offset_seconds[5m]) >= 0) or (node_timex_offset_seconds < -0.05 and deriv(node_timex_offset_seconds[5m]) <= 0)) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 11m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机时钟偏差(实例 {{ $labels.instance }})
+        description: "检测到时钟偏差。时钟未同步。请确保此主机已正确配置 NTP。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+        
+    - alert: Node时钟未同步
+      expr: '(min_over_time(node_timex_sync_status[1m]) == 0 and node_timex_maxerror_seconds >= 16) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: 主机时钟未同步(实例 {{ $labels.instance }})
+        description: "时钟未同步。请确保此主机已配置 NTP。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Node需要重启
+      expr: '(node_reboot_required > 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}'
+      for: 4h
+      labels:
+        severity: info
+      annotations:
+        summary: 主机需要重启(实例 {{ $labels.instance }})
+        description: "{{ $labels.instance }} 需要重启。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"

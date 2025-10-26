@@ -1,0 +1,52 @@
+apiVersion: opentelemetry.io/v1alpha1    
+kind: Instrumentation                     # 声明资源类型为 Instrumentation（用于语言自动注入）
+metadata:
+  name: java-instrumentation              # Instrumentation 资源的名称（可以被 Deployment 等引用）
+  namespace: opentelemetry
+spec:
+  propagators:                            # 指定用于 trace 上下文传播的方式，支持多种格式
+    - tracecontext                        # W3C Trace Context（最通用的跨服务追踪格式）
+    - baggage                             # 传播用户定义的上下文键值对
+    - b3                                  # Zipkin 的 B3 header（用于兼容 Zipkin 环境）
+  sampler:                                # 定义采样策略（决定是否收集 trace）
+    type: always_on                       # 始终采样所有请求（适合测试或调试环境）
+  java:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:latest
+                                          # 使用的 Java 自动注入 agent 镜像地址
+    # image:  harbor.cuiliangblog.cn/otel/autoinstrumentation-java:latest
+    env:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://center-collector.opentelemetry.svc:4318
+      # - name: OTEL_LOGS_EXPORTER
+      #   value: "console"
+---
+apiVersion: opentelemetry.io/v1alpha1    
+kind: Instrumentation                     # 声明资源类型为 Instrumentation（用于语言自动注入）
+metadata:
+  name: python-instrumentation              # Instrumentation 资源的名称（可以被 Deployment 等引用）
+  namespace: opentelemetry
+spec:
+  propagators:                            # 指定用于 trace 上下文传播的方式，支持多种格式
+    - tracecontext                        # W3C Trace Context（最通用的跨服务追踪格式）
+    - baggage                             # 传播用户定义的上下文键值对
+    - b3                                  # Zipkin 的 B3 header（用于兼容 Zipkin 环境）
+  sampler:                                # 定义采样策略（决定是否收集 trace）
+    type: always_on                       # 始终采样所有请求（适合测试或调试环境）
+  python:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:latest
+    env:                                  
+      - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED # 启用 日志的自动检测
+        value: "true"
+      - name: OTEL_PYTHON_LOG_CORRELATION # 在日志中启用跟踪上下文注入
+        value: "true"
+      # - name: OTEL_PYTHON_LOG_FORMAT
+      #   value: "%(msg)s [span_id=%(span_id)s]"
+      - name: OTEL_LOG_LEVEL
+        value: "debug"
+      - name: OTEL_LOGS_EXPORTER
+        value: "console"
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://center-collector.opentelemetry.svc:4318
+      
+      
+  

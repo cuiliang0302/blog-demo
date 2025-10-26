@@ -1,0 +1,62 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+# 元数据定义部分
+metadata:
+  name: otel        # Collector 的名称为 center
+  namespace: opentelemetry
+# 具体的配置内容
+spec:
+  mode: daemonset # 每个节点运行一个实例
+  image: otel/opentelemetry-collector-contrib:latest  # 使用elastic的镜像
+  imagePullPolicy: IfNotPresent  # 镜像拉取策略为如果不存在则拉取
+  # image: harbor.cuiliangblog.cn/otel/opentelemetry-collector-contrib:latest
+  config:               # 定义 Collector 配置
+    receivers:
+      hostmetrics:
+        collection_interval: 10s
+        scrapers:
+          cpu:
+            metrics:
+              system.cpu.utilization:
+                enabled: true
+              system.cpu.logical.count:
+                enabled: true
+          memory:
+            metrics:
+              system.memory.utilization:
+                enabled: true
+          process:
+            metrics:
+              process.open_file_descriptors:
+                enabled: true
+              process.memory.utilization:
+                enabled: true
+              process.disk.operations:
+                enabled: true
+          network: {}
+          processes: {}
+          load: {}
+          disk: {}
+          filesystem: {}
+
+    processors:
+      resourcedetection/system:
+        detectors: ["system", "ec2"]
+      elasticinframetrics: {}
+
+    exporters:
+      elasticsearch/metrics:
+        endpoints: ["https://elasticsearch-es-http.elk.svc:9200"]
+        tls:
+          insecure: true  # 如果是 HTTPS 自签名证书
+        api_key: "Sm5qN1BaY0JJSV9aVFFVT2FYV006d3I1QnNmYUdBNmdHWmNxQnpQMC1Odw=="  
+        mapping:
+          mode: ecs
+        
+
+    service:
+      pipelines:
+        metrics/host:
+          receivers: [hostmetrics]
+          processors: [resourcedetection/system, elasticinframetrics]
+          exporters: [logging, elasticsearch/ metrics]

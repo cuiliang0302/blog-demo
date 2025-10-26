@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name:  postgresql
+---
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: postgres-cluster
+  namespace: postgresql
+spec:
+  teamId: "default" # 团队标识，通常用来区分不同团队的数据库集群
+  volume:
+    size: 10Gi # 每个 Postgres 实例分配的存储空间
+    storageClass: nfs-client 
+  numberOfInstances: 2 # 有 1 个主库（primary）+ 1 个副本（replica）
+  # users:
+  #   zalando:  # 具备 superuser 和 createdb 权限
+  #   - superuser
+  #   - createdb
+  #   foo_user: []  # 没有额外权限（普通角色）
+  # databases: # 创建一个名为 foo 的数据库,zalando 用户作为 owner
+  #   foo: zalando  # dbname: owner
+  # preparedDatabases:
+  #   bar: {}
+  postgresql: # Postgres 版本
+    version: "17"
+  dockerImage: ghcr.io/zalando/spilo-17:4.0-p3 # 自定义镜像地址

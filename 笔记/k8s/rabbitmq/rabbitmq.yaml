@@ -1,0 +1,24 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq-cluster
+  namespace: rabbitmq-system
+  labels:
+    app: rabbitmq-cluster
+spec:
+  replicas: 3
+  image: harbor.local.com/rabbitmq/rabbitmq:4.0-management
+  persistence:
+    storageClassName: nfs-client
+    storage: 5Gi
+  resources:
+    limits:
+      cpu: 2
+      memory: 4Gi
+  rabbitmq:
+    additionalPlugins:
+      - rabbitmq_prometheus # 启用prometheus插件
+    additionalConfig: |
+      default_vhost = vhost      #配置Virtual Hosts
+      default_user = admin       #配置登录账号
+      default_pass = 123.com      #配置账号密码

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis
+  labels:
+    name: redis
+spec:
+  containers:
+  - name: redis
+    image: harbor.local.com/library/redis:7
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 6379
+    volumeMounts:
+      - name: redis-data
+        mountPath: "/data"
+  volumes:
+    - name: redis-data
+      persistentVolumeClaim:
+        claimName: test-rbd

@@ -1,0 +1,26 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: opentelemetry
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jaeger
+  namespace: opentelemetry
+spec:
+  entryPoints:
+  - web
+  - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+  - match: Host(`jaeger.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: jaeger-query
+        port: 16686  

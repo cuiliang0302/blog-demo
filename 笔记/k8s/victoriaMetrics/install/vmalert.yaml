@@ -1,0 +1,20 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: vmalert
+  namespace: victoria
+spec:
+  replicaCount: 2
+  selectAllByDefault: true
+  notifier:
+    url: http://vmalertmanager-vmalertmanager:9093
+  resources:
+    requests:
+      cpu: 10m
+      memory: 10Mi
+  remoteWrite:
+    url: http://vminsert-vmcluster:8480/insert/0/prometheus/
+  remoteRead:
+    url: http://vmselect-vmcluster:8481/select/0/prometheus/
+  datasource:
+    url: http://vmselect-vmcluster:8481/select/0/prometheus/

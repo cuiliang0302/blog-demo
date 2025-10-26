@@ -1,0 +1,20 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: website-probe
+  namespace: victoria
+spec:
+  jobName: website-probe
+  vmAgentSelector: {}  # 匹配所有 vmagent
+  module: http_2xx
+  interval: 30s
+  targets:
+    staticConfig:
+      targets:
+        - https://cuiliangblog.cn
+        - https://www.baidu.com
+      labels: # 添加自定义标签
+        team: "public"
+        env: "prod"
+  vmProberSpec:
+    url: http://blackbox-exporter.monitoring.svc:9115

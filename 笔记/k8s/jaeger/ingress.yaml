@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jaeger
+  namespace: opentelemetry
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`jaeger.cuiliangblog.cn`)
+    kind: Rule
+    services:
+      - name: jaeger-collector
+        port: 14250

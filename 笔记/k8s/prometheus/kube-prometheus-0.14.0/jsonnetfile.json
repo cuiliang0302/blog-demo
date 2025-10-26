@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "mixin-utils"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "jsonnet/kube-prometheus"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "legacyImports": true
+}

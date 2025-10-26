@@ -1,0 +1,124 @@
+loki:
+  auth_enabled: false
+  image:
+    # registry: harbor.cuiliangblog.cn
+    repository: grafana/loki
+    tag: 3.4.2
+  commonConfig:
+    replication_factor: 1
+  schemaConfig:
+    configs:
+      - from: "2024-04-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  storage_config:
+    aws:
+      # s3: http://Q8n1pukeJ34K1BHgr4x7:JX78wVGzzM6pKRh4oVJ4GohyrCoE30Reh6CSgZTm@minio-service.minio.svc:9000/loki
+      # region: <AWS region your bucket is in, for example, `eu-west-2`>
+      # bucketnames: <Your AWS bucket for chunk, for exaxmple,  `aws-loki-dev-chunk`>
+      s3forcepathstyle: true
+  pattern_ingester:
+      enabled: true
+  limits_config:
+    allow_structured_metadata: true
+    volume_enabled: true
+    retention_period: 672h # 28 days retention
+
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki
+      ruler: loki
+      admin: loki
+    s3:
+      # s3 URL can be used to specify the endpoint, access key, secret key, and bucket name this works well for S3 compatible storages or are hosting Loki on-premises and want to use S3 as the storage backend. Either use the s3 URL or the individual fields below (AWS endpoint, region, secret).
+      # s3: http://Q8n1pukeJ34K1BHgr4x7:JX78wVGzzM6pKRh4oVJ4GohyrCoE30Reh6CSgZTm@minio-service.minio.svc:9000/loki
+      # AWS endpoint URL
+      endpoint: minio-service.minio.svc:9000
+      bucketnames: loki
+      # AWS region where the S3 bucket is located
+      # region: <your-region>
+      # AWS secret access key
+      secretAccessKey: JX78wVGzzM6pKRh4oVJ4GohyrCoE30Reh6CSgZTm
+      # AWS access key ID
+      accessKeyId: Q8n1pukeJ34K1BHgr4x7
+      # AWS signature version (e.g., v2 or v4)
+      # signatureVersion: <your-signature-version>
+      # Forces the path style for S3 (true/false)
+      s3ForcePathStyle: true
+      # Allows insecure (HTTP) connections (true/false)
+      insecure: true
+      # HTTP configuration settings
+      http_config: {}
+chunksCache:
+  # # -- Amount of memory allocated to chunks-cache for object storage (in MB).
+  allocatedMemory: 4096
+
+# Disable minio storage
+minio:
+  enabled: false
+
+deploymentMode: SingleBinary
+
+singleBinary:
+  replicas: 1
+  persistence:
+    storageClass: nfs-client
+    accessModes:
+      - ReadWriteOnce
+    size: 30Gi
+
+# Zero out replica counts of other deployment modes
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+ingester:
+  replicas: 0
+querier:
+  replicas: 0
+queryFrontend:
+  replicas: 0
+queryScheduler:
+  replicas: 0
+distributor:
+  replicas: 0
+compactor:
+  replicas: 0
+indexGateway:
+  replicas: 0
+bloomCompactor:
+  replicas: 0
+bloomGateway:
+  replicas: 0
+
+# lokiCanary:
+#   image:
+#     registry: harbor.cuiliangblog.cn
+#     repository: grafana/loki-canary
+#     tag: 3.4.2
+# memcached:
+#   image:
+#     repository: harbor.cuiliangblog.cn/grafana/memcached
+#     tag: 1.6.38-alpine
+# memcachedExporter:
+#   image:
+#     repository: harbor.cuiliangblog.cn/grafana/memcached-exporter
+#     tag: v0.15.2
+# gateway:
+#   image:
+#     registry: harbor.cuiliangblog.cn
+#     repository: grafana/nginx-unprivileged
+#     tag: 1.27-alpine
+# sidecar:
+#   image:
+#     repository: harbor.cuiliangblog.cn/grafana/k8s-sidecar
+#     tag: 1.30.2
+  

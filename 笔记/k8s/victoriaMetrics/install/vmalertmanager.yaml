@@ -1,0 +1,8 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlertmanager
+metadata:
+  name: vmalertmanager
+  namespace: victoria
+spec:
+  replicaCount: 2
+  selectAllByDefault: true

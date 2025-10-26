@@ -1,0 +1,31 @@
+{{- if .Values.dashboard.persistence.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "helm-dashboard.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "helm-dashboard.labels" . | nindent 4 }}
+  {{- with .Values.dashboard.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.dashboard.persistence.finalizers }}
+  finalizers:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+  {{- range .Values.dashboard.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.dashboard.persistence.size | quote }}
+  {{- if and (.Values.dashboard.persistence.lookupVolumeName) (lookup "v1" "PersistentVolumeClaim" .Release.Namespace (include "helm-dashboard.fullname" .)) }}
+  volumeName: {{ (lookup "v1" "PersistentVolumeClaim" .Release.Namespace (include "helm-dashboard.fullname" .)).spec.volumeName }}
+  {{- end }}
+  {{- with .Values.dashboard.persistence.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+{{- end }}

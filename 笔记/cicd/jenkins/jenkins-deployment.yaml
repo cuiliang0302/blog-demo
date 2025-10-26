@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: cicd
+spec:
+  selector:
+    matchLabels:
+      app: jenkins
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      serviceAccountName: jenkins
+      containers:
+        - name: jenkins
+          image: harbor.local.com/cicd/jenkins:2.455
+          ports:
+            - containerPort: 8080
+              name: web
+            - containerPort: 50000
+              name: slave
+          readinessProbe:
+            tcpSocket:
+              port: web
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: web
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /login
+              port: web
+            failureThreshold: 20
+            periodSeconds: 60
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "8Gi"
+              cpu: "4"
+          volumeMounts:
+            - name: data
+              mountPath: /var/jenkins_home
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: jenkins-pvc

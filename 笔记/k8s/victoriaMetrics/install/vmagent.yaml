@@ -1,0 +1,16 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: vmagent
+  namespace: victoria
+spec:
+  selectAllByDefault: true # 如果没有指定 selector，则默认选择所有资源（即全部匹配）
+  resources:
+    requests:
+      cpu: 10m
+      memory: 10Mi
+  replicaCount: 2
+  externalLabels:
+    cluster: "k8s-ha"
+  remoteWrite:
+  - url: "http://vminsert-vmcluster:8480/insert/0/prometheus/api/v1/write"

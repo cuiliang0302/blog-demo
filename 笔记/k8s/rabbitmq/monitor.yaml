@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq-exporter
+  namespace: monitoring
+spec:
+  jobLabel: rabbitmq-exporter
+  endpoints:
+  - interval: 30s
+    port: prometheus
+    path: /metrics
+    scheme: http
+  selector: # svc标签选择器，匹配service的labels
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq-cluster
+  namespaceSelector: # namespace选择
+    matchNames:
+    - rabbitmq-system

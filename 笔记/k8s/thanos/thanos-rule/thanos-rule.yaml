@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ThanosRuler
+metadata:
+  name: thanos-ruler
+  namespace: monitoring
+spec:
+  image: quay.io/thanos/thanos:v0.31.0
+  replicas: 2
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  ruleSelector: # 匹配prometheusrules资源中role=alert-rules的告警规则
+    matchLabels: 
+      role: alert-rules 
+  queryEndpoints: # 连接thanos-query获取指标数据
+    - dnssrv+_http._tcp.thanos-query.thanos.svc.cluster.local
+  alertmanagersConfig: # 告警推送至alertmanager
+    key: alertmanager-configs.yaml
+    name: thanosruler-alertmanager-config

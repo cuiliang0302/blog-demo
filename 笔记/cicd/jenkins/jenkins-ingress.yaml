@@ -1,0 +1,14 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jenkins
+  namespace: cicd
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`jenkins.cuiliangblog.cn`)
+      kind: Rule
+      services:
+        - name: jenkins
+          port: 8080

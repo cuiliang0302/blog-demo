@@ -1,0 +1,273 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-prometheus
+    app.kubernetes.io/part-of: kube-prometheus
+    prometheus: k8s
+    role: alert-rules
+  name: prometheus-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: prometheus-rules
+    rules:
+    - alert: Prometheus任务丢失
+      expr: 'absent(up{job="prometheus-k8s"})'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus任务丢失(实例 {{ $labels.instance }})
+        description: "Prometheus任务消失了 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus目标丢失
+      expr: 'up == 0'
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: Prometheus目标丢失(实例 {{ $labels.instance }})
+        description: "Prometheus目标丢失了。可能是某个exporter崩溃了。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus目标丢失（启动缓冲时间）
+      expr: 'sum by(instance, job) ((up == 0) * on(instance) group_right(job) (node_time_seconds - node_boot_time_seconds > 600))'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Prometheus目标丢失（启动缓冲时间）(实例 {{ $labels.instance }})
+        description: "允许任务在警报之前有10分钟的启动时间。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus配置重新加载失败
+      expr: 'prometheus_config_last_reload_successful != 1'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus配置重新加载失败(实例 {{ $labels.instance }})
+        description: "Prometheus配置重新加载错误 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus重启过多
+      expr: 'changes(process_start_time_seconds{job=~"prometheus|pushgateway|alertmanager"}[15m]) > 2'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus重启过多(实例 {{ $labels.instance }})
+        description: "Prometheus在过去15分钟内重启了两次以上，可能处于崩溃循环状态。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusAlertManager任务丢失
+      expr: 'absent(up{job="alertmanager-main"})'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: PrometheusAlertManager任务丢失(实例 {{ $labels.instance }})
+        description: "PrometheusAlertManager任务消失了 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusAlertManager配置重新加载失败
+      expr: 'alertmanager_config_last_reload_successful != 1'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: PrometheusAlertManager配置重新加载失败(实例 {{ $labels.instance }})
+        description: "AlertManager配置重新加载错误 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusAlertManager配置未同步
+      expr: 'count(count_values("config_hash", alertmanager_config_hash)) > 1'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: PrometheusAlertManager配置未同步(实例 {{ $labels.instance }})
+        description: "AlertManager集群实例的配置未同步 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    # - alert: Prometheus未连接到AlertManager
+    #   expr: 'prometheus_notifications_alertmanagers_discovered < 1'
+    #   for: 1m
+    #   labels:
+    #     severity: critical
+    #   annotations:
+    #     summary: Prometheus未连接到AlertManager(实例 {{ $labels.instance }})
+    #     description: "Prometheus无法连接到AlertManager \nLABELS = {{ $labels }}"
+    #     value: "{{ $value }}"
+
+    - alert: Prometheus规则评估失败
+      expr: 'increase(prometheus_rule_evaluation_failures_total[3m]) > 0'
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: Prometheus规则评估失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到了{{ $value | humanize }}次规则评估失败，可能导致警报被忽略。 \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Prometheus模板文本扩展失败
+      expr: 'increase(prometheus_template_text_expansion_failures_total[3m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Prometheus模板文本扩展失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到了 {{ $value }} 次模板文本扩展失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus规则评估速度慢
+      expr: 'prometheus_rule_group_last_duration_seconds > prometheus_rule_group_interval_seconds'
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus规则评估速度慢(实例 {{ $labels.instance }})
+        description: "Prometheus规则评估时间超过了预定间隔。这可能是由于存储后端访问较慢或查询过于复杂。 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus通知队列积压
+      expr: 'min_over_time(prometheus_notifications_queue_length[11m]) > 0'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus通知队列积压(实例 {{ $labels.instance }})
+        description: "Prometheus通知队列在10分钟内未清空 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusAlertManager通知失败
+      expr: 'rate(alertmanager_notifications_failed_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusAlertManager通知失败(实例 {{ $labels.instance }})
+        description: "AlertManager发送通知失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Prometheus没有发现目标
+      expr: 'prometheus_sd_discovered_targets == 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Prometheus没有发现目标(实例 {{ $labels.instance }})
+        description: "Prometheus在服务发现中没有任何目标 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus获取指标速度慢
+      expr: 'prometheus_target_interval_length_seconds{quantile="0.9"} / on (interval, instance, job) prometheus_target_interval_length_seconds{quantile="0.5"} > 1.05'
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus获取指标速度慢(实例 {{ $labels.instance }})
+        description: "Prometheus获取指标的速度较慢，超过了预定间隔时间。这可能是因为您的Prometheus服务器资源不足。 \nLABELS = {{ $labels }}"
+        value: "{{ $value | humanize }}"
+
+    - alert: Prometheus获取指标样本量过大
+      expr: 'increase(prometheus_target_scrapes_exceeded_sample_limit_total[11m]) > 10'
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus获取指标样本量过大(实例 {{ $labels.instance }})
+        description: "Prometheus有许多获取指标请求超过了样本限制 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: Prometheus获取指标时间戳重复
+      expr: 'increase(prometheus_target_scrapes_sample_duplicate_timestamp_total[5m]) > 0'
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Prometheus获取指标时间戳重复(实例 {{ $labels.instance }})
+        description: "Prometheus有许多样本因时间戳重复但值不同而被拒绝 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDB检查点创建失败
+      expr: 'increase(prometheus_tsdb_checkpoint_creations_failed_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDB检查点创建失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次检查点创建失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDB检查点删除失败
+      expr: 'increase(prometheus_tsdb_checkpoint_deletions_failed_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDB检查点删除失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次检查点删除失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDB压缩失败
+      expr: 'increase(prometheus_tsdb_compactions_failed_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDB压缩失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次TSDB压缩失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDB头截断失败
+      expr: 'increase(prometheus_tsdb_head_truncations_failed_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDB头截断失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次TSDB头截断失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDB重载失败
+      expr: 'increase(prometheus_tsdb_reloads_failures_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDB重载失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次TSDB重载失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDBWAL损坏
+      expr: 'increase(prometheus_tsdb_wal_corruptions_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDBWAL损坏(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次TSDBWAL损坏 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    - alert: PrometheusTSDBWAL截断失败
+      expr: 'increase(prometheus_tsdb_wal_truncations_failed_total[1m]) > 0'
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: PrometheusTSDBWAL截断失败(实例 {{ $labels.instance }})
+        description: "Prometheus遇到 {{ $value }} 次TSDBWAL截断失败 \nLABELS = {{ $labels }}"
+        value: "{{ $value }}"
+
+    # - alert: Prometheus时间序列基数过高
+    #   expr: 'label_replace(count by(__name__) ({__name__=~".+"}), "name", "$1", "__name__", "(.+)") > 10000'
+    #   for: 1m
+    #   labels:
+    #     severity: warning
+    #   annotations:
+    #     summary: Prometheus时间序列基数过高(实例 {{ $labels.instance }})
+    #     description: "\"{{ $labels.name }}\" 时间序列的基数变得非常高：{{ $value }} \nLABELS = {{ $labels }}"
+    #     value: "{{ $value }}"

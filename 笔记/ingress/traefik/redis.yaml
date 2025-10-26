@@ -1,0 +1,28 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https-middleware
+  namespace: redis
+spec:
+  redirectScheme:
+    scheme: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: redis
+  namespace: redis
+spec:
+  entryPoints:
+    - web
+    - websecure 
+  tls:
+    secretName: ingress-tls
+  routes:
+    - match: Host(`redisinsight.cuiliangblog.cn`)
+      kind: Rule
+      services:
+        - name: redisinsight
+          port: 5540
+      middlewares:
+        - name: redirect-https-middleware

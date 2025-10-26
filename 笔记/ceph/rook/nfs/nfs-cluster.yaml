@@ -1,0 +1,30 @@
+apiVersion: ceph.rook.io/v1
+kind: CephNFS # 定义资源类型为 CephNFS，用于创建 Ceph NFS 服务
+metadata:
+  name: ceph-nfs # NFS 服务的名称
+  namespace: rook-ceph # 该资源所属的命名空间
+spec:
+  server: # NFS 服务的配置
+    active: 2 # 启动2个 NFS 服务实例
+    placement: # 配置 NFS Pod 的节点亲和性
+      nodeAffinity: # 节点亲和性，指定 Pod 应该调度到哪些节点
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: storage
+              operator: In
+              values:
+              - "true" # 该 Pod 只能调度到具有 "storage=true" 标签的节点
+      topologySpreadConstraints: # 配置拓扑均衡，控制 Pod 的分布
+      podAffinity: # Pod 亲和性，指定 Pod 应该和哪些 Pod 一起调度
+      podAntiAffinity: # Pod 反亲和性，指定 Pod 应该避免与哪些 Pod 调度到一起
+
+    annotations: # NFS 服务的注解
+      my-annotation: something
+    labels: # NFS 服务的标签
+      my-label: something
+    resources: # NFS 服务的资源请求和限制
+      limits:
+        memory: "4Gi" # 设置内存的限制为 4Gi
+    priorityClassName: "" # 设置 Pod 的优先级类为空
+    logLevel: NIV_INFO # 设置日志级别为信息级别
