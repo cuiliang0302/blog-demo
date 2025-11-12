@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applicationset
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      repoURL: http://gitlab.cuiliangblog.cn/devops/gitops-applicationSet.git
+      revision: HEAD
+      directories:
+      - path: application/* # 扫描路径
+  template:      
+    metadata:
+      name: '{{path.basename}}' # 目录名称（prod,test）
+    spec:
+      project: '{{path.basename}}'
+      source:
+        repoURL: http://gitlab.cuiliangblog.cn/devops/gitops-applicationSet.git
+        targetRevision: main
+        path: '{{path}}'  # 完整的路径(application-set/myapps/prod或test)
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}' # 目录名称
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true  
+          - ServerSideApply=true

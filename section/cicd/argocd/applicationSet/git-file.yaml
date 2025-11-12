@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applicationset-git-file
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      repoURL: http://gitlab.cuiliangblog.cn/devops/argo-demo.git
+      revision: HEAD
+      files:
+      - path: "application-set/config/**/config.json"
+  template:      
+    metadata:
+      name: '{{name}}' # config.json文件name字段内容(myapp-prod,myapp-test)
+    spec:
+      project: default
+      source:
+        repoURL: http://gitlab.cuiliangblog.cn/devops/argo-demo.git
+        targetRevision: main
+        path: manifests
+      destination:
+        server: '{{config.server}}' # config.json文件config.server字段内容
+        namespace: '{{config.namespace}}' # config.json文件config.namespace字段内容(prod,test)
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true  
+        automated:
+          prune: false
+          selfHeal: false

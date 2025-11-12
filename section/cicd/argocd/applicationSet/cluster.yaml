@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applicationset-cluster
+  namespace: argocd
+spec:
+  generators:
+  - clusters: {}
+  template:      
+    metadata:
+      name: '{{name}}-myapp'  ## name值就是clustername(prod, test)
+    spec:
+      project: devops
+      source:
+        path: manifests
+        repoURL: http://gitlab.cuiliangblog.cn/devops/argo-demo.git
+        targetRevision: main
+      destination:
+        server: '{{server}}'   # server值就是cluster集群的地址
+        namespace: default     # 部署到default名称空间
+      syncPolicy:
+        syncOptions: # 自动创建namespace
+          - CreateNamespace=true  
+        automated:
+          prune: false
+          selfHeal: false

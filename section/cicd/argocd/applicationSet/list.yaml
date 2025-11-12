@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applicationset-list
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - name: prod
+        server: https://kubernetes.default.svc
+        namespace: prod
+      - name: test
+        server: https://192.168.10.15:6443
+        namespace: test
+  template:      
+    metadata:
+      name: '{{namespace}}-myapp' # 使用动态值列表
+    spec:
+      project: devops
+      source:
+        path: manifests
+        repoURL: http://gitlab.cuiliangblog.cn/devops/argo-demo.git
+        targetRevision: main
+      destination:
+        server: '{{server}}' # 使用动态值列表
+        namespace: '{{namespace}}' # 使用动态值列表
+      syncPolicy:
+        syncOptions: # 自动创建namespace
+          - CreateNamespace=true  
+        automated:
+          prune: false
+          selfHeal: false

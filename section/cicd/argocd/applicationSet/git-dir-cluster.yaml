@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applicationset-git-dir-cluster
+  namespace: argocd
+spec:
+  generators:
+  - matrix:
+      generators:
+      - git: # git目录生成器，myapp目录下共有2个应用
+          repoURL: http://gitlab.cuiliangblog.cn/devops/argo-demo.git
+          revision: HEAD
+          directories:
+          - path: application-set/myapp/* # 扫描路径
+      - clusters: {} # cluster生成器，共有2个集群
+  template:      
+    metadata:
+      name: 'cluster.{{name}}-ns.{{path.basename}}' # clustername(prod、test)与目录名称（myapp1,myapp2）组合
+    spec:
+      project: devops
+      source:
+        repoURL: http://gitlab.cuiliangblog.cn/devops/argo-demo.git
+        targetRevision: main
+        path: '{{path}}'  # 完整的路径(application-set/myapps/prod或test)
+      destination:
+        server: '{{server}}' # cluster生成器的集群地址
+        namespace: '{{path.basename}}' # git目录生成器的目录名称
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true  
+        automated:
+          prune: false
+          selfHeal: false

@@ -17,11 +17,12 @@ spec:
         - name: gitlab
           image: gitlab/gitlab-ce:18.4.3-ce.0
           env:
-            - name: GITLAB_SKIP_UNMIGRATED_DATA_CHECK
+            - name: GITLAB_SKIP_UNMIGRATED_DATA_CHECK  # 跳过 GitLab 启动时的数据迁移检查
               value: "true"
+            - name: EXTERNAL_URL # 指定gitlab域名
+              value: "http://gitlab.cuiliangblog.cn/"
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
-                external_url = 'http://gitlab.cuiliangblog.cn/'
                 prometheus['enable'] = false
                 alertmanager['enable'] = false
                 gitlab_rails['time_zone'] = 'Asia/Shanghai'

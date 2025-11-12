@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root            # 应用名称，可自定义
+  namespace: argocd           # 注意：Application 必须部署在 argocd 命名空间
+spec:
+  project: devops             # 绑定到的 ArgoCD Project 名称
+  source:
+    repoURL: http://gitlab.cuiliangblog.cn/devops/gitops-applicationSet.git   # 代码仓库地址
+    targetRevision: HEAD                                         # 分支（HEAD=默认分支）
+    path: application                                              # 仓库内 YAML/Helm 文件路径
+  destination:
+    server: https://kubernetes.default.svc   # 目标集群（本集群）
+    namespace: argpcd                       # 部署到的命名空间
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true                 # 若目标命名空间不存在则自动创建

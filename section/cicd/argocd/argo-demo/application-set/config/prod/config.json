@@ -1,0 +1,7 @@
+{
+    "name": "myapp-prod",
+    "config": {
+        "server": "https://kubernetes.default.svc",
+        "namespace": "prod"
+    }
+}

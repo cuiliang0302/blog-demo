@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: product                # ApplicationSet 名称
+  namespace: argocd            # 所在命名空间（必须与 Argo CD 控制器相同）
+spec:
+  generators:
+  - list:                      # 使用 list 生成器，定义一组静态的应用参数
+      elements:                # 每个元素代表一个要生成的 Application
+      - name: backend          # 应用名标识（动态模板中可引用）
+        server: https://kubernetes.default.svc     # 要部署的集群 API 地址（当前集群）
+        repoURL: http://gitlab.cuiliangblog.cn/product/backend-deploy.git  # 后端应用的 Git 仓库
+        namespace: prod        # 部署命名空间
+      - name: frontend         # 第二个子应用（前端）
+        server: https://192.168.10.15:6443         # 要部署到的另一集群（远程集群）
+        repoURL: http://gitlab.cuiliangblog.cn/product/frontend-deploy.git  # 前端应用 Git 仓库
+        namespace: prod        # 同样部署到 prod 命名空间
+  template:                    # 模板部分：定义每个生成 Application 的通用模板
+    metadata:
+      name: '{{name}}-product' # 每个 Application 的名字会自动拼接 name（如 backend-product）
+    spec:
+      project: product         # 所属 Argo CD Project，用于权限范围划分
+      source:
+        path: manifests        # 指定在仓库中应用 YAML 文件所在路径
+        repoURL: '{{repoURL}}' # 动态引用上面 list 元素中的 repoURL
+        targetRevision: main   # 同步的分支（通常是 main 或 master）
+      destination:
+        server: '{{server}}'   # 动态指定目标集群地址
+        namespace: '{{namespace}}' # 动态指定部署命名空间
+      syncPolicy:              # 同步策略
+        syncOptions:
+          - CreateNamespace=true  # 自动创建目标 namespace（若不存在）
+        automated:
+          prune: false          # 不自动清理集群中多余资源（更安全）
+          selfHeal: false       # 不自动修复偏移状态（避免误操作）

@@ -1,0 +1,7 @@
+{
+    "name": "myapp-test",
+    "config": {
+        "server": "https://192.168.10.15:6443",
+        "namespace": "test"
+    }
+}
