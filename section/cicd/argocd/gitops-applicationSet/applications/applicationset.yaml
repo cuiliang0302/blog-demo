@@ -4,31 +4,27 @@ metadata:
   name: applicationset
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
-  - list:
-      elements:
-      - name: infra
-        project: infra
-      - name: model
-        project: model
-  # - git:
-  #     repoURL: http://gitlab.cuiliangblog.cn/devops/gitops-applicationSet.git
-  #     revision: HEAD
-  #     directories:
-  #     - path: application/* # 扫描路径
+  - git:
+      repoURL: http://gitlab.cuiliangblog.cn/devops/gitops-applicationSet.git
+      revision: HEAD
+      directories:
+      - path: applications/* # 扫描路径
   template:      
     metadata:
-      name: '{{ project }}-111' # 目录名称（prod,test）
+      name: '{{.path.basename}}' # 组名（infra、model）
     spec:
-      project: '{{ project }}'
+      project: '{{.path.basename}}'
       source:
         repoURL: http://gitlab.cuiliangblog.cn/devops/gitops-applicationSet.git
         targetRevision: HEAD
-        path: 'applications/{{ project }}'  # 完整的路径(application-set/myapps/prod或test)
+        path: '{{.path.path}}'  # 完整的路径(application-set/myapps/prod或test)
       destination:
         server: https://kubernetes.default.svc
-        namespace: argocd # 目录名称
+        namespace: argocd 
       syncPolicy:
-        syncOptions:
-          - CreateNamespace=true  
-          - ServerSideApply=true
+        automated:                               # 启用自动同步
+          prune: true                            # 自动删除 Git 中已移除的资源
+          selfHeal: true                         # 自动修复偏离集群状态的资源
