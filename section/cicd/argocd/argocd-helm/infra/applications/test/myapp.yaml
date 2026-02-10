@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-test-myapp      # 应用名称，可自定义
+  namespace: argocd           # 注意：Application 必须部署在 argocd 命名空间
+spec:
+  project: infra             # 绑定到的 ArgoCD Project 名称
+  source:
+    repoURL: harbor.cuiliangblog.cn/helm-charts
+    targetRevision: 0.1.0
+    chart: myapp
+    helm:
+      releaseName: infra-prod
+      values: |-
+        replicas: 1
+        image: harbor.cuiliangblog.cn/myapp/myapp:v1
+        ingressroute:
+          match: "Host(`test.infra.cuiliangblog.cn`)"
+  destination:
+    name: test-cluster    # 目标集群
+    namespace: infra                         # 部署到的命名空间
+  syncPolicy:
+    automated:                               # 启用自动同步
+      prune: true                            # 自动删除 Git 中已移除的资源
+      selfHeal: true                         # 自动修复偏离集群状态的资源
+    syncOptions:
+      - CreateNamespace=true                 # 若目标命名空间不存在则自动创建

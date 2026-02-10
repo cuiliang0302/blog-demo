@@ -26,7 +26,7 @@ spec:
     - web
     - websecure 
   tls:
-    secretName: ingress-tls                
+    secretName: cuiliangblog-tls               
   routes:
   - match: Host(`argocd.cuiliangblog.cn`)
     kind: Rule

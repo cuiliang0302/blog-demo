@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-prod-myapp      # 应用名称，可自定义
+  namespace: argocd           # 注意：Application 必须部署在 argocd 命名空间
+spec:
+  project: infra             # 绑定到的 ArgoCD Project 名称
+  source:
+    repoURL: harbor.cuiliangblog.cn/helm-charts
+    targetRevision: 0.1.0
+    chart: myapp
+    helm:
+      releaseName: infra-prod
+      values: |-
+        replicas: 2
+        image: harbor.cuiliangblog.cn/myapp/myapp:v1
+        ingressroute:
+          match: "Host(`prod.infra.cuiliangblog.cn`)"
+  destination:
+    name: prod-cluster    # 目标集群（本集群）
+    namespace: infra                         # 部署到的命名空间
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true                 # 若目标命名空间不存在则自动创建

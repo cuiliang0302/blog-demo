@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-root # 顶层 Application 的名称
+  namespace: argocd  # Application 资源创建在 Argo CD 命名空间
+  labels:
+    app-type: root
+  annotations:
+    argocd.argoproj.io/sync-options: SkipPrune=true
+spec:
+  project: infra # 指定属于哪个 Argo CD Project（权限/命名空间范围）
+  source:
+    repoURL: http://gitlab.cuiliangblog.cn/gitops/infra.git # 仓库地址
+    targetRevision: HEAD # 要拉取的分支
+    path: applications      # Git 仓库中子 Application YAML 文件所在目录
+    directory:
+      recurse: true # 递归扫描目录下的Application文件
+      jsonnet: {} # 递归查找子目录中的 Jsonnet 文件并渲染成 Kubernetes YAML
+  destination:
+    server: https://kubernetes.default.svc # 部署到当前集群
+    namespace: argocd # Application 对象本身存放的命名空间
+  syncPolicy:
+    automated:
+      prune: false # 不自动删除 Git 中不存在的资源
+      selfHeal: false # 不自动修复被集群修改的资源，使其与 Git 同步

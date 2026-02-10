@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "myapp.fullname" . }}
+  labels:
+    {{- include "myapp.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: {{ .Values.ingressroute.match | quote }}
+      kind: Rule
+      services:
+        - name: {{ include "myapp.fullname" . }}
+          port: 80
+  tls:
+    secretName: ingress-tls

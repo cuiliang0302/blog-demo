@@ -1,0 +1,8 @@
+已安装 {{ .Chart.Name }}。
+
+示例：
+  - IngressRoute match: {{ .Values.ingressroute.match }}
+  - Image: {{ .Values.image }}
+  - Replicas: {{ .Values.replicas }}
+  - HPA: {{ .Values.hpa.minReplicas }}-{{ .Values.hpa.maxReplicas }}
+

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-root # 顶层 Application 的名称
+  namespace: argocd  # Application 资源创建在 Argo CD 命名空间
+  labels:
+    app-type: root
+  annotations:
+    argocd.argoproj.io/sync-options: SkipPrune=true
+  finalizers: []     # 禁止删除资源
+spec:
+  project: default # 指定属于哪个 Argo CD Project（权限/命名空间范围）
+  source:
+    repoURL: http://gitlab.cuiliangblog.cn/gitops/argocd-root.git # 仓库地址
+    targetRevision: HEAD # 要拉取的分支
+    path: apps         # Git 仓库中子 Application YAML 文件所在目录
+  destination:
+    server: https://kubernetes.default.svc # 部署到当前集群
+    namespace: argocd # Application 对象本身存放的命名空间
+  syncPolicy: # 自动同步策略
+    automated:
+      prune: true # 当 Git 仓库里删掉某个资源时，Argo CD 会自动删除集群中的对应资源；
+      selfHeal: true # 当集群状态偏离 Git（例如被手动修改），Argo CD 会自动恢复为 Git 定义的状态；

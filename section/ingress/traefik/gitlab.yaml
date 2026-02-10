@@ -7,7 +7,7 @@ spec:
   entryPoints:
     - websecure 
   tls:
-    secretName: ingress-tls
+    secretName: cuiliangblog-tls
   routes:
     - match: Host(`gitlab.cuiliangblog.cn`)
       kind: Rule

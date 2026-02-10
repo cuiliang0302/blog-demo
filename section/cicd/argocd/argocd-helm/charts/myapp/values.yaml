@@ -1,0 +1,10 @@
+replicas: 1
+
+image: harbor.cuiliangblog.cn/myapp/myapp:v3
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 5
+
+ingressroute:
+  match: "Host(`myapp.cuiliangblog.cn`)"
